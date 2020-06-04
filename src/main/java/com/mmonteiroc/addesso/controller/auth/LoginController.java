@@ -2,9 +2,12 @@ package com.mmonteiroc.addesso.controller.auth;
 
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.mmonteiroc.addesso.entity.User;
 import com.mmonteiroc.addesso.entity.enums.LoginMode;
 import com.mmonteiroc.addesso.exceptions.petition.NotRecivedRequiredParamsException;
+import com.mmonteiroc.addesso.exceptions.token.TokenInvalidException;
+import com.mmonteiroc.addesso.exceptions.token.TokenOverdatedException;
 import com.mmonteiroc.addesso.manager.entity.UserManager;
 import com.mmonteiroc.addesso.manager.security.TokenManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +71,45 @@ public class LoginController {
 
         response.setStatus(HttpServletResponse.SC_OK);
         return new HashMap<>();
+    }
+
+    /**
+     * @param json     data to recive {refresh_token: 'TOKEN HERE'}
+     * @param response
+     * @return we return de access_tokens
+     */
+    @PostMapping("/auth/login/refresh")
+    public Map<String, String> refreshMe(@RequestBody String json, HttpServletResponse response) throws IOException {
+
+        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+        String refreshToken = jsonObject.get("refresh_token") != null ? jsonObject.get("refresh_token").getAsString() : null;
+        if (refreshToken == null) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "REFRESH TOKEN NOT RECIVED");
+            return null;
+        }
+
+
+        try {
+            /*
+             * This already validates the refresh token.
+             * */
+            User user = this.tokenManager.getUsuariFromToken(refreshToken);
+            String newAccess = this.tokenManager.generateAcessToken(user);
+            String newRefresh = this.tokenManager.generateRefreshToken(user);
+
+            Map<String, String> map = new HashMap<>();
+            map.put("access_token", newAccess);
+            map.put("refresh_token", newRefresh);
+
+            response.setStatus(HttpServletResponse.SC_OK);
+            return map;
+        } catch (TokenOverdatedException | TokenInvalidException e) {
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            return null;
+        }
     }
 
 

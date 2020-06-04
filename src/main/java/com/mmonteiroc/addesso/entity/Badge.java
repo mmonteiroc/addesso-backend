@@ -21,7 +21,7 @@ import java.util.Set;
 public class Badge {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idbadge")
     private Long idBadge;
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mmonteiroc.addesso.entity.enums.EstadoTicket;
 
 import javax.persistence.*;
+import java.util.Set;
 
 /**
  * Code created by: mmonteiroc
@@ -19,7 +20,7 @@ import javax.persistence.*;
 public class Ticket {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idticket")
     private Long idTicket;
 
@@ -46,6 +47,11 @@ public class Ticket {
     @JoinColumn(name = "category_idcategory")
     @JsonManagedReference
     private Category category;
+
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private Set<UploadedFile> atachedFiles;
+
 
     public Ticket() {
     }

@@ -1,9 +1,9 @@
 package com.mmonteiroc.addesso.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mmonteiroc.addesso.entity.enums.LoginMode;
-import net.minidev.json.annotate.JsonIgnore;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -24,7 +24,7 @@ import java.util.Set;
 public class User {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "iduser")
     private Long iduser;
 
@@ -34,7 +34,6 @@ public class User {
     @Column(name = "surname")
     private String surname;
 
-    @JsonIgnore
     @Column(name = "passwd")
     private String passwd;
 
@@ -42,10 +41,13 @@ public class User {
     private String email;
 
     @Column(name = "is_admin", columnDefinition = "bit")
-    private boolean isAdmin;
+    private Boolean isAdmin;
 
     @Column(name = "login_mode", columnDefinition = "tinyint")
     private LoginMode loginMode;
+
+    @Column(name = "profile_photo")
+    private String profilePhoto;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
@@ -86,6 +88,7 @@ public class User {
         this.surname = surname;
     }
 
+    @JsonIgnore
     public String getPasswd() {
         return passwd;
     }
@@ -102,11 +105,11 @@ public class User {
         this.email = email;
     }
 
-    public boolean isAdmin() {
+    public Boolean isAdmin() {
         return isAdmin;
     }
 
-    public void setAdmin(boolean admin) {
+    public void setAdmin(Boolean admin) {
         isAdmin = admin;
     }
 
@@ -142,18 +145,25 @@ public class User {
         this.ticketsCreated = ticketsCreated;
     }
 
+    public String getProfilePhoto() {
+        return profilePhoto;
+    }
+
+    public void setProfilePhoto(String profilePhoto) {
+        this.profilePhoto = profilePhoto;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return isAdmin == user.isAdmin &&
+        return isAdmin.equals(user.isAdmin) &&
                 Objects.equals(iduser, user.iduser) &&
                 Objects.equals(name, user.name) &&
                 Objects.equals(surname, user.surname) &&
-                Objects.equals(passwd, user.passwd) &&
                 Objects.equals(email, user.email) &&
-                loginMode == user.loginMode;
+                loginMode.equals(user.loginMode);
     }
 
     @Override

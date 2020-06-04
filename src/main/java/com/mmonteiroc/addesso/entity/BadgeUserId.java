@@ -15,26 +15,26 @@ import java.util.Objects;
 public class BadgeUserId implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private Long idBAdge;
-    private Long idUser;
+    private Long badge;
+    private Long user;
 
     public BadgeUserId() {
     }
 
-    public Long getIdBAdge() {
-        return idBAdge;
+    public Long getBadge() {
+        return badge;
     }
 
-    public void setIdBAdge(Long idBAdge) {
-        this.idBAdge = idBAdge;
+    public void setBadge(Long badge) {
+        this.badge = badge;
     }
 
-    public Long getIdUser() {
-        return idUser;
+    public Long getUser() {
+        return user;
     }
 
-    public void setIdUser(Long idUser) {
-        this.idUser = idUser;
+    public void setUser(Long user) {
+        this.user = user;
     }
 
     @Override
@@ -42,12 +42,12 @@ public class BadgeUserId implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BadgeUserId that = (BadgeUserId) o;
-        return Objects.equals(idBAdge, that.idBAdge) &&
-                Objects.equals(idUser, that.idUser);
+        return Objects.equals(badge, that.badge) &&
+                Objects.equals(user, that.user);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(idBAdge, idUser);
+        return Objects.hash(badge, user);
     }
 }

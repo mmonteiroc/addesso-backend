@@ -2,9 +2,9 @@ package com.mmonteiroc.addesso.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
@@ -20,7 +20,6 @@ import java.util.Objects;
 @Table(name = "badge_user")
 @IdClass(BadgeUserId.class)
 public class BadgeUser {
-
     @Id
     @ManyToOne
     @JoinColumn(name = "user_iduser", insertable = false, updatable = false)
@@ -33,17 +32,12 @@ public class BadgeUser {
     @JsonManagedReference
     private Badge badge;
 
-    @Column(name = "obtained_date", columnDefinition = "DATETIME")
-    private LocalDateTime obtainedDate;
-
-    @Transient
-    private Long idUser;
     @Transient
     private Long idBadge;
+    @Transient
+    private Long idUser;
 
-    public BadgeUser() {
-    }
-
+    @JsonProperty("user")
     public User getUser() {
         return user;
     }
@@ -52,38 +46,32 @@ public class BadgeUser {
         this.user = user;
     }
 
+    @JsonProperty("badge")
     public Badge getBadge() {
         return badge;
     }
-
     public void setBadge(Badge badge) {
         this.badge = badge;
     }
 
-    public LocalDateTime getObtainedDate() {
-        return obtainedDate;
-    }
 
-    public void setObtainedDate(LocalDateTime obtainedDate) {
-        this.obtainedDate = obtainedDate;
-    }
-
+    @JsonProperty("iduser")
     public Long getIdUser() {
-        return idUser;
+        return user.getIduser();
     }
 
-    public void setIdUser(Long idUser) {
-        this.idUser = idUser;
-    }
-
+    @JsonProperty("idbadge")
     public Long getIdBadge() {
-        return idBadge;
+        return badge.getIdBadge();
     }
 
     public void setIdBadge(Long idBadge) {
         this.idBadge = idBadge;
     }
 
+    public void setIdUser(Long idUser) {
+        this.idUser = idUser;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -92,13 +80,12 @@ public class BadgeUser {
         BadgeUser badgeUser = (BadgeUser) o;
         return Objects.equals(user, badgeUser.user) &&
                 Objects.equals(badge, badgeUser.badge) &&
-                Objects.equals(obtainedDate, badgeUser.obtainedDate) &&
-                Objects.equals(idUser, badgeUser.idUser) &&
-                Objects.equals(idBadge, badgeUser.idBadge);
+                Objects.equals(idBadge, badgeUser.idBadge) &&
+                Objects.equals(idUser, badgeUser.idUser);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(user, badge, obtainedDate, idUser, idBadge);
+        return Objects.hash(user, badge, idBadge, idUser);
     }
 }

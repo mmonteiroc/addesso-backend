@@ -29,7 +29,7 @@ public class CorsConfiguration implements WebMvcConfigurer {
 
         registry.addMapping("/**")
                 .allowCredentials(true)
-                .allowedOrigins(environment.getProperty("cors.allowed"))
+                .allowedOrigins(environment.getProperty("CORS_ALLOWED"))
                 .allowedMethods("PUT", "POST", "GET", "DELETE", "OPTIONS");
 
     }

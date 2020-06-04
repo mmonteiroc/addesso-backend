@@ -3,6 +3,7 @@ package com.mmonteiroc.addesso.manager.security;
 import com.mmonteiroc.addesso.entity.User;
 import com.mmonteiroc.addesso.exceptions.token.TokenInvalidException;
 import com.mmonteiroc.addesso.exceptions.token.TokenOverdatedException;
+import com.mmonteiroc.addesso.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -20,6 +21,9 @@ public class TokenManager implements Serializable {
 
     @Autowired
     private Environment environment;
+
+    @Autowired
+    private UserRepository userRepository;
 
     private String generateToken(User user, Long expirationTime) {
         return Jwts.builder()
@@ -60,21 +64,17 @@ public class TokenManager implements Serializable {
     }
 
     public Claims getBody(String token) throws TokenInvalidException, TokenOverdatedException {
-        if (this.validateToken(token)) {
-            return Jwts.parser()
-                    .setSigningKey(Objects.requireNonNull(environment.getProperty("SIGNING_KEY_TOKEN")).getBytes())
-                    .parseClaimsJws(token)
-                    .getBody();
-        } else {
-            throw new TokenInvalidException("Token dont pass validate step");
-        }
+        this.validateToken(token);
+        return Jwts.parser()
+                .setSigningKey(Objects.requireNonNull(environment.getProperty("SIGNING_KEY_TOKEN")).getBytes())
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     public User getUsuariFromToken(String token) throws TokenInvalidException, TokenOverdatedException {
-
-        Claims claims = getBody(token);
+        Claims claims = this.getBody(token);
         String email = claims.getSubject();
-        return null;
 
+        return this.userRepository.findByEmail(email);
     }
 }
