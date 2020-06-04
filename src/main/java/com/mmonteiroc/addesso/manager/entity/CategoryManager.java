@@ -23,7 +23,7 @@ public class CategoryManager {
 
     public Category findById(Long id) throws CategoryNotFound {
         Category cat = this.categoryRepository.findByIdCategory(id);
-        if (cat == null) throw new CategoryNotFound("Cat with id " + id + " was not found");
+        if (cat == null) throw new CategoryNotFound("Category with ID [" + id + "] was not found");
 
         return cat;
     }
