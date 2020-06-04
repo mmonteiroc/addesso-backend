@@ -51,10 +51,13 @@ public class User {
     @JsonManagedReference
     private Set<BadgeUser> badgeUserSet = new HashSet<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "userAsigned", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
-    private Set<Ticket> tickets;
+    private Set<Ticket> ticketsAsigned;
 
+    @OneToMany(mappedBy = "userOwner", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
+    private Set<Ticket> ticketsCreated;
 
     public User() {
     }
@@ -121,6 +124,22 @@ public class User {
 
     public void setBadgeUserSet(Set<BadgeUser> badgeUserSet) {
         this.badgeUserSet = badgeUserSet;
+    }
+
+    public Set<Ticket> getTicketsAsigned() {
+        return ticketsAsigned;
+    }
+
+    public void setTicketsAsigned(Set<Ticket> ticketsAsigned) {
+        this.ticketsAsigned = ticketsAsigned;
+    }
+
+    public Set<Ticket> getTicketsCreated() {
+        return ticketsCreated;
+    }
+
+    public void setTicketsCreated(Set<Ticket> ticketsCreated) {
+        this.ticketsCreated = ticketsCreated;
     }
 
     @Override
