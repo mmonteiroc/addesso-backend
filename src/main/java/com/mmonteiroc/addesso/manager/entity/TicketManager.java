@@ -1,5 +1,6 @@
 package com.mmonteiroc.addesso.manager.entity;
 
+import com.mmonteiroc.addesso.entity.Category;
 import com.mmonteiroc.addesso.entity.Ticket;
 import com.mmonteiroc.addesso.repository.TikcetRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,10 @@ public class TicketManager {
 
     public Ticket findById(Long id) {
         return this.tikcetRepository.findByIdTicket(id);
+    }
+
+    public Set<Ticket> findByCategory(Category category) {
+        return this.tikcetRepository.findByCategory(category);
     }
 
     public Set<Ticket> findAll() {

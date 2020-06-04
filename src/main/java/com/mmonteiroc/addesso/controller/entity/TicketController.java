@@ -1,12 +1,17 @@
 package com.mmonteiroc.addesso.controller.entity;
 
+import com.mmonteiroc.addesso.entity.Category;
 import com.mmonteiroc.addesso.entity.Ticket;
+import com.mmonteiroc.addesso.exceptions.entity.CategoryNotFound;
+import com.mmonteiroc.addesso.manager.entity.CategoryManager;
 import com.mmonteiroc.addesso.manager.entity.TicketManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Set;
 
 /**
@@ -24,6 +29,8 @@ public class TicketController {
     @Autowired
     private TicketManager ticketManager;
 
+    @Autowired
+    private CategoryManager categoryManager;
 
     @GetMapping("/tickets")
     public Set<Ticket> getAllTickets() {
@@ -36,9 +43,16 @@ public class TicketController {
     }
 
     @GetMapping("/tickets/category/{id}")
-    public Set<Ticket> getAllTicketsByCategory(@PathVariable(name = "id") Long idCategory) {
-
-        return null;
+    public Set<Ticket> getAllTicketsByCategory(@PathVariable(name = "id") Long idCategory, HttpServletResponse response) throws IOException {
+        try {
+            Category cat = this.categoryManager.findById(idCategory);
+            return this.ticketManager.findByCategory(cat);
+        } catch (CategoryNotFound e) {
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            return null;
+        }
     }
 
     @PostMapping("/tickets")

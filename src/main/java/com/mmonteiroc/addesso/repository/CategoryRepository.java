@@ -1,10 +1,7 @@
 package com.mmonteiroc.addesso.repository;
 
 import com.mmonteiroc.addesso.entity.Category;
-import com.mmonteiroc.addesso.entity.Ticket;
 import org.springframework.data.repository.CrudRepository;
-
-import java.util.Set;
 
 /**
  * Code created by: mmonteiroc
@@ -15,10 +12,6 @@ import java.util.Set;
  * Package: com.mmonteiroc.addesso.repository
  * Project: addesso
  */
-public interface TikcetRepository extends CrudRepository<Ticket, Long> {
-    Ticket findByIdTicket(Long id);
-
-    Set<Ticket> findAll();
-
-    Set<Ticket> findByCategory(Category cat);
+public interface CategoryRepository extends CrudRepository<Category, Long> {
+    Category findByIdCategory(Long id);
 }
