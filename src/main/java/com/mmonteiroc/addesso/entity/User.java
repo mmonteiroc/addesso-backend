@@ -33,6 +33,9 @@ public class User {
     @Column(name = "email")
     private String email;
 
+    @Column(name = "is_admin", columnDefinition = "bit")
+    private boolean isAdmin;
+
 
     public User() {
     }
@@ -77,6 +80,13 @@ public class User {
         this.email = email;
     }
 
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
+    }
 
     @Override
     public boolean equals(Object o) {

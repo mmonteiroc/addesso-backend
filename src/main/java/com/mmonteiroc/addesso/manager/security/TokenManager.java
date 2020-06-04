@@ -1,8 +1,8 @@
 package com.mmonteiroc.addesso.manager.security;
 
 import com.mmonteiroc.addesso.entity.User;
-import com.mmonteiroc.addesso.manager.exceptions.token.TokenInvalidException;
-import com.mmonteiroc.addesso.manager.exceptions.token.TokenOverdatedException;
+import com.mmonteiroc.addesso.exceptions.token.TokenInvalidException;
+import com.mmonteiroc.addesso.exceptions.token.TokenOverdatedException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;

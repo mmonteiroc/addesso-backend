@@ -1,5 +1,8 @@
 package com.mmonteiroc.addesso.config;
 
+import com.mmonteiroc.addesso.filter.AdminFilter;
+import com.mmonteiroc.addesso.filter.TokenFilter;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -16,11 +19,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class AppConfiguration implements WebMvcConfigurer {
 
-//    @Bean
-//    public TokenFilter getTokenFilter() {
-//        return new TokenFilter();
-//    }
+    @Bean
+    public TokenFilter getTokenFilter() {
+        return new TokenFilter();
+    }
 
+    @Bean
+    public AdminFilter getAdminFilter() {
+        return new AdminFilter();
+    }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {

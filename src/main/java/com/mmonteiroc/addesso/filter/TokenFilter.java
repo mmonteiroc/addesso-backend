@@ -1,6 +1,8 @@
 package com.mmonteiroc.addesso.filter;
 
-import com.esliceu.core.manager.TokenManager;
+import com.mmonteiroc.addesso.exceptions.token.TokenInvalidException;
+import com.mmonteiroc.addesso.exceptions.token.TokenOverdatedException;
+import com.mmonteiroc.addesso.manager.security.TokenManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -9,6 +11,16 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+
+/**
+ * Code created by: mmonteiroc
+ * Email: miguelmonteiroclaveri@gmail.com
+ * Github: https://github.com/mmonteiroc
+ * LinkedIn: https://www.linkedin.com/in/mmonteiroc/?locale=en_US
+ * Date of creation: 04/06/2020
+ * Package: com.mmonteiroc.addesso.filter
+ * Project: addesso
+ */
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class TokenFilter implements HandlerInterceptor {
 
@@ -31,26 +43,21 @@ public class TokenFilter implements HandlerInterceptor {
 
         if (auth != null && !auth.isEmpty()) {
             String token = auth.replace("Bearer ", "");
-            String validate = tokenManager.validateToken(token);
 
-            if (validate.equals("ERROR")) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token no valido");
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return false;
-
-            } else if (validate.equals("EXPIRED")) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token caducado");
+            try {
+                boolean validate = tokenManager.validateToken(token);
+                if (validate) return true;
+            } catch (TokenOverdatedException | TokenInvalidException e) {
+                e.printStackTrace();
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return false;
             }
-
-            response.setStatus(HttpServletResponse.SC_OK);
-            return true;
-
         } else {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token no recibido");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token not recived");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return false;
         }
+        return false;
     }
 }
