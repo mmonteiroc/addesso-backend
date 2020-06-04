@@ -1,4 +1,4 @@
-package com.mmonteiroc.addesso.manager.security;
+package com.mmonteiroc.addesso.manager.administration;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;

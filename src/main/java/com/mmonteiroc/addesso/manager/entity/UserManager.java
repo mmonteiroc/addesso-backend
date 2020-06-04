@@ -1,9 +1,12 @@
 package com.mmonteiroc.addesso.manager.entity;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.mmonteiroc.addesso.entity.User;
+import com.mmonteiroc.addesso.exceptions.NotRecivedRequiredParamsException;
 import com.mmonteiroc.addesso.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -24,8 +27,16 @@ public class UserManager {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private Gson gson;
+
+
     public User findById(Long id) {
         return this.userRepository.findByIduser(id);
+    }
+
+    public User findByEmail(String email) {
+        return this.userRepository.findByEmail(email);
     }
 
     public Set<User> findAll() {
@@ -72,8 +83,49 @@ public class UserManager {
     }
 
 
-    private String cypherPassword(String passwordWithoutCypher) {
-        return BCrypt.hashpw(passwordWithoutCypher, BCrypt.gensalt());
+    public User convertFromJson(String json, boolean requireParams) throws NotRecivedRequiredParamsException {
+        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+        User userToReturn = new User();
+        if (jsonObject.get("iduser") != null) {
+            userToReturn = this.findById(jsonObject.get("iduser").getAsLong());
+            if (userToReturn == null) userToReturn = new User();
+        }
+
+        if (jsonObject.get("name") != null) {
+            userToReturn.setName(jsonObject.get("name").getAsString());
+        } else if (requireParams) {
+            throw new NotRecivedRequiredParamsException("Param name was required");
+        }
+
+        if (jsonObject.get("surname") != null) {
+            userToReturn.setSurname(jsonObject.get("surname").getAsString());
+        } else if (requireParams) {
+            throw new NotRecivedRequiredParamsException("Param surname was required");
+        }
+
+        if (jsonObject.get("passwd") != null) {
+            userToReturn.setPasswd(jsonObject.get("passwd").getAsString());
+        } else if (requireParams) {
+            throw new NotRecivedRequiredParamsException("Param passwd was required");
+        }
+
+        if (jsonObject.get("email") != null) {
+            userToReturn.setEmail(jsonObject.get("email").getAsString());
+        } else if (requireParams) {
+            throw new NotRecivedRequiredParamsException("Param email was required");
+        }
+
+
+        return userToReturn;
     }
 
+    private String cypherPassword(String passwordWithoutCypher) {
+        return BCrypt.withDefaults().hashToString(12, passwordWithoutCypher.toCharArray());
+    }
+
+    private boolean validatePassword(User fromLoginNotCypher, User fromDatabaseToValidate) {
+        BCrypt.Result result = BCrypt.verifyer().verify(fromLoginNotCypher.getPasswd().toCharArray(), fromDatabaseToValidate.getPasswd());
+
+        return result.verified;
+    }
 }

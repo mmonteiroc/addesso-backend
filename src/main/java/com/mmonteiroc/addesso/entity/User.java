@@ -1,5 +1,8 @@
 package com.mmonteiroc.addesso.entity;
 
+import com.mmonteiroc.addesso.entity.enums.LoginMode;
+import net.minidev.json.annotate.JsonIgnore;
+
 import javax.persistence.*;
 import java.util.Objects;
 
@@ -21,12 +24,13 @@ public class User {
     @Column(name = "iduser")
     private Long iduser;
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
 
     @Column(name = "surname")
     private String surname;
 
+    @JsonIgnore
     @Column(name = "passwd")
     private String passwd;
 
@@ -36,6 +40,8 @@ public class User {
     @Column(name = "is_admin", columnDefinition = "bit")
     private boolean isAdmin;
 
+    @Column(name = "login_mode", columnDefinition = "tinyint")
+    private LoginMode loginMode;
 
     public User() {
     }
@@ -86,6 +92,14 @@ public class User {
 
     public void setAdmin(boolean admin) {
         isAdmin = admin;
+    }
+
+    public LoginMode getLoginMode() {
+        return loginMode;
+    }
+
+    public void setLoginMode(LoginMode loginMode) {
+        this.loginMode = loginMode;
     }
 
     @Override
