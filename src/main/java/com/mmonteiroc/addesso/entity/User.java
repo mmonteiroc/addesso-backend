@@ -1,5 +1,6 @@
 package com.mmonteiroc.addesso.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mmonteiroc.addesso.entity.enums.LoginMode;
 import net.minidev.json.annotate.JsonIgnore;
@@ -49,6 +50,11 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Set<BadgeUser> badgeUserSet = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
+    private Set<Ticket> tickets;
+
 
     public User() {
     }
