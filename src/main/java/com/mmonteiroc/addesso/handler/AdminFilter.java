@@ -1,11 +1,13 @@
-package com.mmonteiroc.addesso.filter;
+package com.mmonteiroc.addesso.handler;
 
+
+import com.mmonteiroc.addesso.entity.User;
 import com.mmonteiroc.addesso.exceptions.token.TokenInvalidException;
 import com.mmonteiroc.addesso.exceptions.token.TokenOverdatedException;
 import com.mmonteiroc.addesso.manager.security.TokenManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,43 +23,39 @@ import javax.servlet.http.HttpServletResponse;
  * Package: com.mmonteiroc.addesso.filter
  * Project: addesso
  */
-@Order(Ordered.HIGHEST_PRECEDENCE)
-public class TokenFilter implements HandlerInterceptor {
+@Component
+public class AdminFilter implements HandlerInterceptor {
 
     @Autowired
     TokenManager tokenManager;
 
+    @Autowired
+    private Environment environment;
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
-        /*
-         * Detecta si la petición es un OPTIONS en tal caso devuelve true.
-         * */
         if (request.getMethod().equals("OPTIONS")) return true;
 
-        /*
-         * Si no es un OPTIONS comprueba si la petición contiene el Token
-         * y comprueba si es válido o si ha expirado.
-         * */
         String auth = request.getHeader("Authorization");
+        String token = auth.replace("Bearer ", "");
 
-        if (auth != null && !auth.isEmpty()) {
-            String token = auth.replace("Bearer ", "");
 
-            try {
-                boolean validate = tokenManager.validateToken(token);
-                if (validate) return true;
-            } catch (TokenOverdatedException | TokenInvalidException e) {
-                e.printStackTrace();
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        try {
+            User user = tokenManager.getUsuariFromToken(token);
+            if (user.isAdmin()) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                return true;
+            } else {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "NOT AN ADMIN");
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 return false;
             }
-        } else {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token not recived");
+        } catch (TokenInvalidException | TokenOverdatedException e) {
+            e.printStackTrace();
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return false;
         }
-        return false;
     }
 }

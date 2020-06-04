@@ -4,7 +4,7 @@ import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.mmonteiroc.addesso.entity.User;
-import com.mmonteiroc.addesso.exceptions.NotRecivedRequiredParamsException;
+import com.mmonteiroc.addesso.exceptions.petition.NotRecivedRequiredParamsException;
 import com.mmonteiroc.addesso.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -83,6 +83,21 @@ public class UserManager {
     }
 
 
+    public User convertFromJson(String json) {
+        try {
+            return this.convertFromJson(json, false);
+        } catch (NotRecivedRequiredParamsException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * @param json          to get the params
+     * @param requireParams If true checks that params musn't be missing
+     * @return user with param recived
+     * @throws NotRecivedRequiredParamsException if there was params required missing
+     */
     public User convertFromJson(String json, boolean requireParams) throws NotRecivedRequiredParamsException {
         JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
         User userToReturn = new User();
@@ -114,7 +129,6 @@ public class UserManager {
         } else if (requireParams) {
             throw new NotRecivedRequiredParamsException("Param email was required");
         }
-
 
         return userToReturn;
     }

@@ -1,7 +1,7 @@
 package com.mmonteiroc.addesso.config;
 
-import com.mmonteiroc.addesso.filter.AdminFilter;
-import com.mmonteiroc.addesso.filter.TokenFilter;
+import com.mmonteiroc.addesso.handler.AdminFilter;
+import com.mmonteiroc.addesso.handler.TokenFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -31,5 +31,6 @@ public class AppConfiguration implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        //registry.addInterceptor(getTokenFilter()).addPathPatterns("/**").excludePathPatterns("/auth/**");
     }
 }

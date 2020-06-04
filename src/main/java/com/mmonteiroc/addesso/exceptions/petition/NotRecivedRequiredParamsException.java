@@ -1,4 +1,4 @@
-package com.mmonteiroc.addesso.exceptions;
+package com.mmonteiroc.addesso.exceptions.petition;
 
 /**
  * Code created by: mmonteiroc

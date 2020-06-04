@@ -1,10 +1,13 @@
 package com.mmonteiroc.addesso.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mmonteiroc.addesso.entity.enums.LoginMode;
 import net.minidev.json.annotate.JsonIgnore;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Code created by: mmonteiroc
@@ -42,6 +45,10 @@ public class User {
 
     @Column(name = "login_mode", columnDefinition = "tinyint")
     private LoginMode loginMode;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private Set<BadgeUser> badgeUserSet = new HashSet<>();
 
     public User() {
     }
@@ -102,17 +109,31 @@ public class User {
         this.loginMode = loginMode;
     }
 
+    public Set<BadgeUser> getBadgeUserSet() {
+        return badgeUserSet;
+    }
+
+    public void setBadgeUserSet(Set<BadgeUser> badgeUserSet) {
+        this.badgeUserSet = badgeUserSet;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(iduser, user.iduser);
+        return isAdmin == user.isAdmin &&
+                Objects.equals(iduser, user.iduser) &&
+                Objects.equals(name, user.name) &&
+                Objects.equals(surname, user.surname) &&
+                Objects.equals(passwd, user.passwd) &&
+                Objects.equals(email, user.email) &&
+                loginMode == user.loginMode;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(iduser);
+        return Objects.hash(iduser, name, surname, passwd, email, isAdmin, loginMode);
     }
 }
 

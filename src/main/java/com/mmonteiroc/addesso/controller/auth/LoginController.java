@@ -4,7 +4,7 @@ package com.mmonteiroc.addesso.controller.auth;
 import com.google.gson.Gson;
 import com.mmonteiroc.addesso.entity.User;
 import com.mmonteiroc.addesso.entity.enums.LoginMode;
-import com.mmonteiroc.addesso.exceptions.NotRecivedRequiredParamsException;
+import com.mmonteiroc.addesso.exceptions.petition.NotRecivedRequiredParamsException;
 import com.mmonteiroc.addesso.manager.entity.UserManager;
 import com.mmonteiroc.addesso.manager.security.TokenManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +44,15 @@ public class LoginController {
      * @return we return de access_tokens + the roles
      */
     @PostMapping("/auth/login/local")
-    public Map<String, String> doLocalLogin(@RequestBody String json, HttpServletResponse response) {
+    public Map<String, String> doLocalLogin(@RequestBody String json, HttpServletResponse response) throws IOException {
+        User jsonUser = this.userManager.convertFromJson(json);
+
+        if (jsonUser == null) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "USER NOT VALID");
+            return null;
+        }
+
 
         response.setStatus(HttpServletResponse.SC_OK);
         return new HashMap<>();
@@ -80,6 +88,7 @@ public class LoginController {
         } catch (NotRecivedRequiredParamsException e) {
             e.printStackTrace();
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
             return null;
         }
 
