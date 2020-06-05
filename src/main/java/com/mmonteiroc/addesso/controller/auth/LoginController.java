@@ -4,8 +4,6 @@ package com.mmonteiroc.addesso.controller.auth;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.mmonteiroc.addesso.entity.User;
-import com.mmonteiroc.addesso.entity.enums.LoginMode;
-import com.mmonteiroc.addesso.exceptions.petition.NotRecivedRequiredParamsException;
 import com.mmonteiroc.addesso.exceptions.token.TokenInvalidException;
 import com.mmonteiroc.addesso.exceptions.token.TokenOverdatedException;
 import com.mmonteiroc.addesso.manager.entity.UserManager;
@@ -17,8 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Code created by: mmonteiroc
@@ -49,28 +46,31 @@ public class LoginController {
     @PostMapping("/auth/login/local")
     public Map<String, String> doLocalLogin(@RequestBody String json, HttpServletResponse response) throws IOException {
         User jsonUser = this.userManager.convertFromJson(json);
-
-        if (jsonUser == null) {
+        if (jsonUser == null || jsonUser.getEmail() == null || jsonUser.getPasswd() == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "USER NOT VALID");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "USER OR PASSWORD NOT VALID");
             return null;
         }
 
+        User toValidate = this.userManager.findByEmail(jsonUser.getEmail());
 
-        response.setStatus(HttpServletResponse.SC_OK);
-        return new HashMap<>();
-    }
+        if (this.userManager.validatePassword(jsonUser, toValidate)) {
+            response.setStatus(HttpServletResponse.SC_OK);
 
-    /**
-     * @param json     data to recive
-     * @param response
-     * @return we return de access_tokens + the roles
-     */
-    @PostMapping("/auth/login/google")
-    public Map<String, String> doGoogleLogin(@RequestBody String json, HttpServletResponse response) {
+            Map<String, String> toReturn = new HashMap<>();
+            toReturn.put("access_token", this.tokenManager.generateAcessToken(toValidate));
+            toReturn.put("refresh_token", this.tokenManager.generateAcessToken(toValidate));
 
-        response.setStatus(HttpServletResponse.SC_OK);
-        return new HashMap<>();
+            List<String> roles = new ArrayList<>();
+            if (toValidate.isAdmin()) roles.add("\"admin\"");
+            if (toValidate.isTechnician()) roles.add("\"technician\"");
+            toReturn.put("roles", Arrays.toString(roles.toArray()));
+            return toReturn;
+        } else {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "LOGIN DATA NOT VALID");
+            return null;
+        }
     }
 
     /**
@@ -110,66 +110,5 @@ public class LoginController {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
             return null;
         }
-    }
-
-
-    /**
-     * @param json     data to recive
-     * @param response
-     * @return we return de access_tokens + the roles
-     */
-    @PostMapping("/auth/register")
-    public Map<String, String> doRegisterLocal(@RequestBody String json, HttpServletResponse response) throws IOException {
-
-        /*
-         * CHECK TO RECIVE ALL PARAMS
-         * */
-        User jsonUser;
-        try {
-            jsonUser = this.userManager.convertFromJson(json, true);
-        } catch (NotRecivedRequiredParamsException e) {
-            e.printStackTrace();
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
-            return null;
-        }
-
-        /*
-         * CHECK EMAIL IS NOT DUPLICATED
-         * */
-        User posibleDuplicatedEmail = this.userManager.findByEmail(jsonUser.getEmail());
-        if (posibleDuplicatedEmail != null) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Email already in use");
-            return null;
-        }
-
-        if (jsonUser.getIduser() != null) {
-            jsonUser.setIduser(null);
-        }
-
-
-        /*
-         * WE SET DEFAULT VALUES
-         * */
-        jsonUser.setAdmin(false);
-        jsonUser.setLoginMode(LoginMode.LOCAL);
-
-
-        /*
-         * WE SAVE THE USER
-         * */
-        this.userManager.create(jsonUser);
-
-
-        String access_token = this.tokenManager.generateAcessToken(jsonUser);
-        String refresh_token = this.tokenManager.generateRefreshToken(jsonUser);
-
-        Map<String, String> map = new HashMap<>();
-        map.put("access_token", access_token);
-        map.put("refresh_token", refresh_token);
-
-        response.setStatus(HttpServletResponse.SC_OK);
-        return map;
     }
 }

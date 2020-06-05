@@ -30,7 +30,6 @@ public class UserManager {
     @Autowired
     private Gson gson;
 
-
     public User findById(Long id) {
         return this.userRepository.findByIduser(id);
     }
@@ -118,10 +117,10 @@ public class UserManager {
             throw new NotRecivedRequiredParamsException("Param surname was required");
         }
 
-        if (jsonObject.get("passwd") != null) {
-            userToReturn.setPasswd(jsonObject.get("passwd").getAsString());
+        if (jsonObject.get("password") != null) {
+            userToReturn.setPasswd(jsonObject.get("password").getAsString());
         } else if (requireParams) {
-            throw new NotRecivedRequiredParamsException("Param passwd was required");
+            throw new NotRecivedRequiredParamsException("Param password was required");
         }
 
         if (jsonObject.get("email") != null) {
@@ -137,7 +136,7 @@ public class UserManager {
         return BCrypt.withDefaults().hashToString(12, passwordWithoutCypher.toCharArray());
     }
 
-    private boolean validatePassword(User fromLoginNotCypher, User fromDatabaseToValidate) {
+    public boolean validatePassword(User fromLoginNotCypher, User fromDatabaseToValidate) {
         BCrypt.Result result = BCrypt.verifyer().verify(fromLoginNotCypher.getPasswd().toCharArray(), fromDatabaseToValidate.getPasswd());
 
         return result.verified;

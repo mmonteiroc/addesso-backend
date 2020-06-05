@@ -3,7 +3,6 @@ package com.mmonteiroc.addesso.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.mmonteiroc.addesso.entity.enums.LoginMode;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -48,9 +47,6 @@ public class User {
 
     @Column(name = "is_technician", columnDefinition = "bit")
     private Boolean isTechnician;
-
-    @Column(name = "login_mode", columnDefinition = "tinyint")
-    private LoginMode loginMode;
 
     @Column(name = "profile_photo")
     private String profilePhoto;
@@ -123,14 +119,6 @@ public class User {
         isAdmin = admin;
     }
 
-    public LoginMode getLoginMode() {
-        return loginMode;
-    }
-
-    public void setLoginMode(LoginMode loginMode) {
-        this.loginMode = loginMode;
-    }
-
     public Set<BadgeUser> getBadgeUserSet() {
         return badgeUserSet;
     }
@@ -163,7 +151,6 @@ public class User {
         this.profilePhoto = profilePhoto;
     }
 
-
     public Boolean isTechnician() {
         return isTechnician;
     }
@@ -192,13 +179,30 @@ public class User {
                 Objects.equals(email, user.email) &&
                 Objects.equals(isAdmin, user.isAdmin) &&
                 Objects.equals(isTechnician, user.isTechnician) &&
-                loginMode == user.loginMode &&
                 Objects.equals(profilePhoto, user.profilePhoto);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(iduser, name, surname, passwd, email, isAdmin, isTechnician, loginMode, profilePhoto);
+        return Objects.hash(iduser, name, surname, passwd, email, isAdmin, isTechnician, profilePhoto);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "iduser=" + iduser +
+                ", name='" + name + '\'' +
+                ", surname='" + surname + '\'' +
+                ", passwd='" + passwd + '\'' +
+                ", email='" + email + '\'' +
+                ", isAdmin=" + isAdmin +
+                ", isTechnician=" + isTechnician +
+                ", profilePhoto='" + profilePhoto + '\'' +
+                ", badgeUserSet=" + badgeUserSet +
+                ", ticketsAsigned=" + ticketsAsigned +
+                ", ticketsCreated=" + ticketsCreated +
+                ", comments=" + comments +
+                '}';
     }
 }
 
