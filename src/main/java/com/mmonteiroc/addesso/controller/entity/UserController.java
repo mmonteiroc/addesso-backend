@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.transaction.Transactional;
+
 /**
  * Code created by: mmonteiroc
  * Email: miguelmonteiroclaveri@gmail.com
@@ -26,6 +28,7 @@ public class UserController {
     private UserManager userManager;
 
     @PostMapping("/user")
+    @Transactional
     public ResponseEntity<String> createUser(@RequestBody String json) {
         try {
             User userToAdd = this.userManager.convertFromJson(json, true);
@@ -33,7 +36,8 @@ public class UserController {
             /*
              * We get sure they didn't send us any ID_USER
              * */
-            if (userToAdd.getIduser() != null) userToAdd.setIduser(null);
+            if (userToAdd.getIduser() != null)
+                return new ResponseEntity<>("We dont accept idUser here", HttpStatus.BAD_REQUEST);
 
             /*
              * We check the email does not exist

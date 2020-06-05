@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.transaction.Transactional;
 import java.io.IOException;
 import java.util.Set;
 
@@ -84,6 +85,7 @@ public class TicketController {
     }
 
     @PostMapping("/tickets")
+    @Transactional
     public ResponseEntity<String> addTicket(@RequestBody String json, HttpServletResponse response, HttpServletRequest request) throws IOException {
         try {
             Ticket ticket = this.ticketManager.convertFromJson(json, true);
@@ -119,6 +121,7 @@ public class TicketController {
     }
 
     @PutMapping("/tickets")
+    @Transactional
     public ResponseEntity<String> modifyTicket(@RequestBody String json) {
 
         Ticket ticket = this.ticketManager.convertFromJson(json);
@@ -139,6 +142,7 @@ public class TicketController {
      * @return
      */
     @PutMapping("/tickets/worker")
+    @Transactional
     public ResponseEntity<String> asignWorkerTicket(@RequestBody String json) {
         User worker = this.userManager.convertFromJson(json);
         Ticket ticket = this.ticketManager.convertFromJson(json);
