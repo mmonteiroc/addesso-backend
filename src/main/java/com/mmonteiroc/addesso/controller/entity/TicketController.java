@@ -111,7 +111,6 @@ public class TicketController {
             User owner = this.tokenManager.getUsuariFromToken(token);
             ticket.setUserOwner(owner);
 
-
             this.ticketManager.createOrUpdate(ticket);
             return new ResponseEntity<>("Ticket saved correctly", HttpStatus.OK);
         } catch (NotRecivedRequiredParamsException | TokenInvalidException | TokenOverdatedException e) {
@@ -139,7 +138,7 @@ public class TicketController {
      *             }
      *             of worker to asign to the
      *             ticket and the ticket itself
-     * @return
+     * @return response
      */
     @PutMapping("/tickets/worker")
     @Transactional

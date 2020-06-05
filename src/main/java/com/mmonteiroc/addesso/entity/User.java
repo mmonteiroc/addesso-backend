@@ -2,10 +2,8 @@ package com.mmonteiroc.addesso.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import javax.persistence.*;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -50,10 +48,6 @@ public class User {
 
     @Column(name = "profile_photo")
     private String profilePhoto;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    private Set<BadgeUser> badgeUserSet = new HashSet<>();
 
     @OneToMany(mappedBy = "userAsigned", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
@@ -117,14 +111,6 @@ public class User {
 
     public void setAdmin(Boolean admin) {
         isAdmin = admin;
-    }
-
-    public Set<BadgeUser> getBadgeUserSet() {
-        return badgeUserSet;
-    }
-
-    public void setBadgeUserSet(Set<BadgeUser> badgeUserSet) {
-        this.badgeUserSet = badgeUserSet;
     }
 
     public Set<Ticket> getTicketsAsigned() {
@@ -198,7 +184,6 @@ public class User {
                 ", isAdmin=" + isAdmin +
                 ", isTechnician=" + isTechnician +
                 ", profilePhoto='" + profilePhoto + '\'' +
-                ", badgeUserSet=" + badgeUserSet +
                 ", ticketsAsigned=" + ticketsAsigned +
                 ", ticketsCreated=" + ticketsCreated +
                 ", comments=" + comments +
