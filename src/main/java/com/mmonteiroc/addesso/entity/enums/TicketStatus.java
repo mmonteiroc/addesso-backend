@@ -14,6 +14,6 @@ public enum TicketStatus {
     IN_PROGRESS,
     WAITING_EXTERNAL_HELP,
     TO_REVISION,
-    CLOSED_SOLVED,
-    CLOSED_NOT_SOLVED
+    SOLVED,
+    CLOSED
 }

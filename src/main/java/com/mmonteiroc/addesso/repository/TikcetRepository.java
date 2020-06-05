@@ -2,6 +2,7 @@ package com.mmonteiroc.addesso.repository;
 
 import com.mmonteiroc.addesso.entity.Category;
 import com.mmonteiroc.addesso.entity.Ticket;
+import com.mmonteiroc.addesso.entity.enums.TicketStatus;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.Set;
@@ -19,6 +20,10 @@ public interface TikcetRepository extends CrudRepository<Ticket, Long> {
     Ticket findByIdTicket(Long id);
 
     Set<Ticket> findAll();
+
+    Set<Ticket> findAllByStatusNotIn(TicketStatus... status);
+
+    Set<Ticket> findAllByStatus(TicketStatus status);
 
     Set<Ticket> findByCategory(Category cat);
 }

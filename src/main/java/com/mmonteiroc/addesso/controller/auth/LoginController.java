@@ -43,7 +43,7 @@ public class LoginController {
      * @param response
      * @return we return de access_tokens + the roles
      */
-    @PostMapping("/auth/login/local")
+    @PostMapping("/auth/login")
     public Map<String, String> doLocalLogin(@RequestBody String json, HttpServletResponse response) throws IOException {
         User jsonUser = this.userManager.convertFromJson(json);
         if (jsonUser == null || jsonUser.getEmail() == null || jsonUser.getPasswd() == null) {

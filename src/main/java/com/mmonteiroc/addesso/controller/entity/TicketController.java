@@ -1,5 +1,6 @@
 package com.mmonteiroc.addesso.controller.entity;
 
+import com.google.gson.Gson;
 import com.mmonteiroc.addesso.entity.Category;
 import com.mmonteiroc.addesso.entity.Ticket;
 import com.mmonteiroc.addesso.entity.User;
@@ -46,9 +47,22 @@ public class TicketController {
     @Autowired
     private TokenManager tokenManager;
 
+    @Autowired
+    private Gson gson;
+
     @GetMapping("/tickets")
     public Set<Ticket> getAllTickets() {
         return this.ticketManager.findAll();
+    }
+
+    @GetMapping("/tickets/not/solved")
+    public Set<Ticket> getTicketsNotSolved() {
+        return this.ticketManager.findAllNotSolved();
+    }
+
+    @GetMapping("/tickets/solved")
+    public Set<Ticket> getTicketsSolved() {
+        return this.ticketManager.findAllSolved();
     }
 
     @GetMapping("/tickets/{id}")
@@ -78,7 +92,8 @@ public class TicketController {
              * this endpoint is only to create tickets.
              * So we erase this id
              * */
-            ticket.setIdTicket(null);
+            if (ticket.getIdTicket() != null)
+                return new ResponseEntity<>("WE DONT ACCEPT ID_TICKET HERE", HttpStatus.BAD_REQUEST);
 
             /*
              * We set default status when created
@@ -106,14 +121,37 @@ public class TicketController {
     @PutMapping("/tickets")
     public ResponseEntity<String> modifyTicket(@RequestBody String json) {
 
-        return new ResponseEntity<>("OK", HttpStatus.OK);
+        Ticket ticket = this.ticketManager.convertFromJson(json);
+        if (ticket.getIdTicket() == null) return new ResponseEntity<>("ID NOT VALID", HttpStatus.BAD_REQUEST);
+
+        this.ticketManager.createOrUpdate(ticket);
+        return new ResponseEntity<>("Ticket saved correctly", HttpStatus.OK);
     }
 
-    @DeleteMapping("/tickets")
-    public ResponseEntity<String> deleteTicket(@RequestBody String json) {
+    /**
+     * @param json needs to recive
+     *             {
+     *             idUser: HERE_GOES_ID,
+     *             idTicket: HERE_GOES_ID
+     *             }
+     *             of worker to asign to the
+     *             ticket and the ticket itself
+     * @return
+     */
+    @PutMapping("/tickets/worker")
+    public ResponseEntity<String> asignWorkerTicket(@RequestBody String json) {
+        User worker = this.userManager.convertFromJson(json);
+        Ticket ticket = this.ticketManager.convertFromJson(json);
+        if (worker.getIduser() == null) return new ResponseEntity<>("ID USER NOT CORRECT", HttpStatus.BAD_REQUEST);
+        if (ticket.getIdTicket() == null) return new ResponseEntity<>("ID TICKET NOT CORRECT", HttpStatus.BAD_REQUEST);
+        if (ticket.getUserAsigned() != null && ticket.getUserAsigned().equals(worker))
+            return new ResponseEntity<>("USER WAS ALREADY ASIGNED TO THIS TICKET", HttpStatus.BAD_REQUEST);
+        if (!worker.isTechnician())
+            return new ResponseEntity<>("The worker to assign has to be a technician", HttpStatus.BAD_REQUEST);
 
-        return new ResponseEntity<>("OK", HttpStatus.OK);
+        ticket.setUserAsigned(worker);
+        this.ticketManager.createOrUpdate(ticket);
+        return new ResponseEntity<>("USER ASINGED CORRECTLY", HttpStatus.OK);
     }
-
 
 }

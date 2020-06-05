@@ -27,7 +27,7 @@ public class TokenManager implements Serializable {
 
     private String generateToken(User user, Long expirationTime) {
         return Jwts.builder()
-                //.setClaims(Jwts.claims().setSubject(user.getEmail()))
+                .setClaims(Jwts.claims().setSubject(user.getEmail()))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setIssuer(environment.getProperty("MAIN_PAGE_PROJECT"))
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))

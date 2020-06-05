@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mmonteiroc.addesso.entity.enums.TicketStatus;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 /**
@@ -56,7 +57,24 @@ public class Ticket {
     @JsonManagedReference
     private Set<Comment> comments;
 
+
+    @Column(name = "created", columnDefinition = "DATETIME")
+    private LocalDateTime created;
+
+    @Column(name = "last_update", columnDefinition = "DATETIME")
+    private LocalDateTime lastUpdate;
+
     public Ticket() {
+    }
+
+    @PrePersist
+    public void onCreated() {
+        this.created = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        this.lastUpdate = LocalDateTime.now();
     }
 
     public Long getIdTicket() {
@@ -130,4 +148,5 @@ public class Ticket {
     public void setComments(Set<Comment> comments) {
         this.comments = comments;
     }
+
 }

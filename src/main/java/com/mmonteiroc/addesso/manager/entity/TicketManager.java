@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.mmonteiroc.addesso.entity.Category;
 import com.mmonteiroc.addesso.entity.Ticket;
+import com.mmonteiroc.addesso.entity.enums.TicketStatus;
 import com.mmonteiroc.addesso.exceptions.petition.NotRecivedRequiredParamsException;
 import com.mmonteiroc.addesso.repository.CategoryRepository;
 import com.mmonteiroc.addesso.repository.TikcetRepository;
@@ -56,6 +57,15 @@ public class TicketManager {
         this.tikcetRepository.deleteAll(iterable);
     }
 
+    public Ticket convertFromJson(String json) {
+        try {
+            return this.convertFromJson(json, false);
+        } catch (NotRecivedRequiredParamsException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     /**
      * @param json          to get the params
      * @param requireParams If true checks that params musn't be missing
@@ -88,6 +98,30 @@ public class TicketManager {
             throw new NotRecivedRequiredParamsException("Param category was required");
         }
 
+        if (jsonObject.get("status") != null) {
+            String stat = jsonObject.get("status").getAsString();
+            if (stat.toLowerCase().equals(TicketStatus.CREATED.toString().toLowerCase()))
+                ticket.setStatus(TicketStatus.CREATED);
+            else if (stat.toLowerCase().equals(TicketStatus.IN_PROGRESS.toString().toLowerCase()))
+                ticket.setStatus(TicketStatus.IN_PROGRESS);
+            else if (stat.toLowerCase().equals(TicketStatus.WAITING_EXTERNAL_HELP.toString().toLowerCase()))
+                ticket.setStatus(TicketStatus.WAITING_EXTERNAL_HELP);
+            else if (stat.toLowerCase().equals(TicketStatus.TO_REVISION.toString().toLowerCase()))
+                ticket.setStatus(TicketStatus.TO_REVISION);
+            else if (stat.toLowerCase().equals(TicketStatus.SOLVED.toString().toLowerCase()))
+                ticket.setStatus(TicketStatus.SOLVED);
+            else if (stat.toLowerCase().equals(TicketStatus.CLOSED.toString().toLowerCase()))
+                ticket.setStatus(TicketStatus.CLOSED);
+        }
+
         return ticket;
+    }
+
+    public Set<Ticket> findAllNotSolved() {
+        return this.tikcetRepository.findAllByStatusNotIn(TicketStatus.SOLVED, TicketStatus.CLOSED);
+    }
+
+    public Set<Ticket> findAllSolved() {
+        return this.tikcetRepository.findAllByStatus(TicketStatus.SOLVED);
     }
 }
