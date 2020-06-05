@@ -1,7 +1,7 @@
 package com.mmonteiroc.addesso.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.mmonteiroc.addesso.entity.enums.EstadoTicket;
+import com.mmonteiroc.addesso.entity.enums.TicketStatus;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -31,7 +31,7 @@ public class Ticket {
     private String description;
 
     @Column(name = "status", columnDefinition = "tinyint")
-    private EstadoTicket status;
+    private TicketStatus status;
 
     @ManyToOne
     @JoinColumn(name = "user_iduser_asigned")
@@ -52,6 +52,9 @@ public class Ticket {
     @JsonManagedReference
     private Set<UploadedFile> atachedFiles;
 
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private Set<Comment> comments;
 
     public Ticket() {
     }
@@ -80,11 +83,11 @@ public class Ticket {
         this.description = description;
     }
 
-    public EstadoTicket getStatus() {
+    public TicketStatus getStatus() {
         return status;
     }
 
-    public void setStatus(EstadoTicket status) {
+    public void setStatus(TicketStatus status) {
         this.status = status;
     }
 
@@ -110,5 +113,21 @@ public class Ticket {
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+
+    public Set<UploadedFile> getAtachedFiles() {
+        return atachedFiles;
+    }
+
+    public void setAtachedFiles(Set<UploadedFile> atachedFiles) {
+        this.atachedFiles = atachedFiles;
+    }
+
+    public Set<Comment> getComments() {
+        return comments;
+    }
+
+    public void setComments(Set<Comment> comments) {
+        this.comments = comments;
     }
 }

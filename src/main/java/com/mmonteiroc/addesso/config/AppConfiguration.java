@@ -1,6 +1,7 @@
 package com.mmonteiroc.addesso.config;
 
 import com.mmonteiroc.addesso.handler.AdminFilter;
+import com.mmonteiroc.addesso.handler.TechnicianFilter;
 import com.mmonteiroc.addesso.handler.TokenFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +28,11 @@ public class AppConfiguration implements WebMvcConfigurer {
     @Bean
     public AdminFilter getAdminFilter() {
         return new AdminFilter();
+    }
+
+    @Bean
+    public TechnicianFilter getTechnicianFilter() {
+        return new TechnicianFilter();
     }
 
     @Override

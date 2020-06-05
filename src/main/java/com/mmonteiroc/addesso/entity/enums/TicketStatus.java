@@ -9,7 +9,7 @@ package com.mmonteiroc.addesso.entity.enums;
  * Package: com.mmonteiroc.addesso.entity.enums
  * Project: addesso
  */
-public enum EstadoTicket {
+public enum TicketStatus {
     CREATED,
     IN_PROGRESS,
     WAITING_EXTERNAL_HELP,

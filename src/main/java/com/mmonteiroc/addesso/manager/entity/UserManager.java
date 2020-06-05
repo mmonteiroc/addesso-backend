@@ -101,8 +101,8 @@ public class UserManager {
     public User convertFromJson(String json, boolean requireParams) throws NotRecivedRequiredParamsException {
         JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
         User userToReturn = new User();
-        if (jsonObject.get("iduser") != null) {
-            userToReturn = this.findById(jsonObject.get("iduser").getAsLong());
+        if (jsonObject.get("idUser") != null) {
+            userToReturn = this.findById(jsonObject.get("idUser").getAsLong());
             if (userToReturn == null) userToReturn = new User();
         }
 

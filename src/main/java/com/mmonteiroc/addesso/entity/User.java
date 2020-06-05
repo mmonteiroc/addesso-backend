@@ -40,8 +40,14 @@ public class User {
     @Column(name = "email")
     private String email;
 
+    /*
+     * Roles of the user
+     * */
     @Column(name = "is_admin", columnDefinition = "bit")
     private Boolean isAdmin;
+
+    @Column(name = "is_technician", columnDefinition = "bit")
+    private Boolean isTechnician;
 
     @Column(name = "login_mode", columnDefinition = "tinyint")
     private LoginMode loginMode;
@@ -60,6 +66,10 @@ public class User {
     @OneToMany(mappedBy = "userOwner", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
     private Set<Ticket> ticketsCreated;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
+    private Set<Comment> comments;
 
     public User() {
     }
@@ -153,22 +163,42 @@ public class User {
         this.profilePhoto = profilePhoto;
     }
 
+
+    public Boolean isTechnician() {
+        return isTechnician;
+    }
+
+    public void setTechnician(Boolean technician) {
+        isTechnician = technician;
+    }
+
+    public Set<Comment> getComments() {
+        return comments;
+    }
+
+    public void setComments(Set<Comment> comments) {
+        this.comments = comments;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return isAdmin.equals(user.isAdmin) &&
-                Objects.equals(iduser, user.iduser) &&
+        return Objects.equals(iduser, user.iduser) &&
                 Objects.equals(name, user.name) &&
                 Objects.equals(surname, user.surname) &&
+                Objects.equals(passwd, user.passwd) &&
                 Objects.equals(email, user.email) &&
-                loginMode.equals(user.loginMode);
+                Objects.equals(isAdmin, user.isAdmin) &&
+                Objects.equals(isTechnician, user.isTechnician) &&
+                loginMode == user.loginMode &&
+                Objects.equals(profilePhoto, user.profilePhoto);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(iduser, name, surname, passwd, email, isAdmin, loginMode);
+        return Objects.hash(iduser, name, surname, passwd, email, isAdmin, isTechnician, loginMode, profilePhoto);
     }
 }
 
