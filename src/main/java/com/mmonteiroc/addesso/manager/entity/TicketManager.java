@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.mmonteiroc.addesso.entity.Category;
 import com.mmonteiroc.addesso.entity.Ticket;
 import com.mmonteiroc.addesso.entity.enums.TicketStatus;
+import com.mmonteiroc.addesso.exceptions.entity.CategoryNotFound;
 import com.mmonteiroc.addesso.exceptions.petition.NotRecivedRequiredParamsException;
 import com.mmonteiroc.addesso.repository.CategoryRepository;
 import com.mmonteiroc.addesso.repository.TikcetRepository;
@@ -60,7 +61,7 @@ public class TicketManager {
     public Ticket convertFromJson(String json) {
         try {
             return this.convertFromJson(json, false);
-        } catch (NotRecivedRequiredParamsException e) {
+        } catch (NotRecivedRequiredParamsException | CategoryNotFound e) {
             e.printStackTrace();
             return null;
         }
@@ -72,7 +73,7 @@ public class TicketManager {
      * @return ticket with params recived
      * @throws NotRecivedRequiredParamsException if there was params required missing
      */
-    public Ticket convertFromJson(String json, boolean requireParams) throws NotRecivedRequiredParamsException {
+    public Ticket convertFromJson(String json, boolean requireParams) throws NotRecivedRequiredParamsException, CategoryNotFound {
         JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
         Ticket ticket = new Ticket();
         if (jsonObject.get("idTicket") != null) {
@@ -93,6 +94,7 @@ public class TicketManager {
         }
         if (jsonObject.get("idCategory") != null) {
             Category cat = this.categoryRepository.findByIdCategory(jsonObject.get("idCategory").getAsLong());
+            if(cat==null) throw new CategoryNotFound("Category with id ["+jsonObject.get("idCategory").getAsLong()+"] not found");
             ticket.setCategory(cat);
         } else if (requireParams) {
             throw new NotRecivedRequiredParamsException("Param category was required");

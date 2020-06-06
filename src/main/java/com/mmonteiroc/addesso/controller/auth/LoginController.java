@@ -54,7 +54,7 @@ public class LoginController {
 
         User toValidate = this.userManager.findByEmail(jsonUser.getEmail());
 
-        if (this.userManager.validatePassword(jsonUser, toValidate)) {
+        if (toValidate!=null && this.userManager.validatePassword(jsonUser, toValidate)) {
             response.setStatus(HttpServletResponse.SC_OK);
 
             Map<String, String> toReturn = new HashMap<>();

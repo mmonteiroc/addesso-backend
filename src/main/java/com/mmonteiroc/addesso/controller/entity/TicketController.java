@@ -51,6 +51,14 @@ public class TicketController {
     @Autowired
     private Gson gson;
 
+    /*
+    * --------------
+    *
+    *  GET MAPPINGS
+    *
+    * --------------
+    * */
+
     @GetMapping("/tickets")
     public Set<Ticket> getAllTickets() {
         return this.ticketManager.findAll();
@@ -84,6 +92,28 @@ public class TicketController {
         }
     }
 
+    /*
+     * ---------------
+     *
+     *  POST MAPPINGS
+     *
+     * ---------------
+     * */
+
+
+    /**
+     * @param json json where all the params are recived. We expect a JSON with the next structure:
+     *             {
+     * 	                title: 'HERE TITLE OF TICKET',
+     * 	                description: 'DESCRIPTION',
+     * 	                idCategory: 2 // NUMBER OF CATEGORY - HAS TO EXIST IN DATABASE
+     *             }
+     *
+     * @param response 200 OK, 401 Your token is invalid or overdated, 403 NOT PERMISION TO THIS ACTION
+     * @param request
+     * @return
+     * @throws IOException
+     */
     @PostMapping("/tickets")
     @Transactional
     public ResponseEntity<String> addTicket(@RequestBody String json, HttpServletResponse response, HttpServletRequest request) throws IOException {
@@ -113,12 +143,31 @@ public class TicketController {
 
             this.ticketManager.createOrUpdate(ticket);
             return new ResponseEntity<>("Ticket saved correctly", HttpStatus.OK);
-        } catch (NotRecivedRequiredParamsException | TokenInvalidException | TokenOverdatedException e) {
+        } catch (NotRecivedRequiredParamsException | TokenInvalidException | TokenOverdatedException | CategoryNotFound e) {
             e.printStackTrace();
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
+    /*
+     * --------------
+     *
+     *  PUT MAPPINGS
+     *
+     * --------------
+     * */
+
+
+    /**
+     * @param json data to modify the ticket, expected to be like:
+     *             {
+     * 	            idTicket:1,
+     * 	            title:'HERE TITLE MODIFIED',
+     * 	            description:'DESC MODIFIED',
+     * 	            idCategory: 2 // REQUIRED - HAS TO EXIST IN DDBB
+     *             }
+     * @return
+     */
     @PutMapping("/tickets")
     @Transactional
     public ResponseEntity<String> modifyTicket(@RequestBody String json) {
@@ -127,7 +176,7 @@ public class TicketController {
         if (ticket.getIdTicket() == null) return new ResponseEntity<>("ID NOT VALID", HttpStatus.BAD_REQUEST);
 
         this.ticketManager.createOrUpdate(ticket);
-        return new ResponseEntity<>("Ticket saved correctly", HttpStatus.OK);
+        return new ResponseEntity<>("Ticket modified correctly", HttpStatus.OK);
     }
 
     /**
@@ -145,8 +194,10 @@ public class TicketController {
     public ResponseEntity<String> asignWorkerTicket(@RequestBody String json) {
         User worker = this.userManager.convertFromJson(json);
         Ticket ticket = this.ticketManager.convertFromJson(json);
-        if (worker.getIduser() == null) return new ResponseEntity<>("ID USER NOT CORRECT", HttpStatus.BAD_REQUEST);
-        if (ticket.getIdTicket() == null) return new ResponseEntity<>("ID TICKET NOT CORRECT", HttpStatus.BAD_REQUEST);
+        if (worker.getIduser() == null)
+            return new ResponseEntity<>("ID USER NOT CORRECT", HttpStatus.BAD_REQUEST);
+        if (ticket.getIdTicket() == null)
+            return new ResponseEntity<>("ID TICKET NOT CORRECT", HttpStatus.BAD_REQUEST);
         if (ticket.getUserAsigned() != null && ticket.getUserAsigned().equals(worker))
             return new ResponseEntity<>("USER WAS ALREADY ASIGNED TO THIS TICKET", HttpStatus.BAD_REQUEST);
         if (!worker.isTechnician())

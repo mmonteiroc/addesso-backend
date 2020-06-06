@@ -6,10 +6,12 @@ import com.mmonteiroc.addesso.manager.entity.UserManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
 /**
@@ -27,6 +29,38 @@ public class UserController {
     @Autowired
     private UserManager userManager;
 
+    /*
+     * --------------
+     *
+     *  GET MAPPINGS
+     *
+     * --------------
+     * */
+    @GetMapping("/user/me")
+    public User getMyOwnInf(HttpServletRequest request){
+
+        return null;
+    }
+
+    /*
+     * ---------------
+     *
+     *  POST MAPPINGS
+     *
+     * ---------------
+     * */
+
+
+    /**
+     * @param json JSON With data to asing to the user, the JSON expected to be:
+     *             {
+     * 	            name:'NAME HERE',
+     * 	            surname: 'SURNAME HERE',
+     * 	            password: 'PASSWD',
+     * 	            email: 'EMAIL HERE :D'
+     *             }
+     * @return
+     */
     @PostMapping("/user")
     @Transactional
     public ResponseEntity<String> createUser(@RequestBody String json) {
