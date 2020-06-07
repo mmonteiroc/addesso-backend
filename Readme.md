@@ -58,4 +58,7 @@ This file is under MiT license. See [LICENSE.md](LICENSE.md) for more details.
 ---
 ### Support 🙌
 * Comment this project with friends and share it 📢
+* If you want support me on ko-fi using the following button
+
+[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C11SM39)
 
