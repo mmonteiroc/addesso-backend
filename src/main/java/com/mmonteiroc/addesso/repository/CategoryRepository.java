@@ -3,6 +3,8 @@ package com.mmonteiroc.addesso.repository;
 import com.mmonteiroc.addesso.entity.Category;
 import org.springframework.data.repository.CrudRepository;
 
+import java.util.Set;
+
 /**
  * Code created by: mmonteiroc
  * Email: miguelmonteiroclaveri@gmail.com
@@ -14,4 +16,6 @@ import org.springframework.data.repository.CrudRepository;
  */
 public interface CategoryRepository extends CrudRepository<Category, Long> {
     Category findByIdCategory(Long id);
+
+    Set<Category> findAll();
 }

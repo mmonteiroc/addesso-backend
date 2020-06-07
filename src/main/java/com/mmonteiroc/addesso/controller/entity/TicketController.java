@@ -5,7 +5,8 @@ import com.mmonteiroc.addesso.entity.Category;
 import com.mmonteiroc.addesso.entity.Ticket;
 import com.mmonteiroc.addesso.entity.User;
 import com.mmonteiroc.addesso.entity.enums.TicketStatus;
-import com.mmonteiroc.addesso.exceptions.entity.CategoryNotFound;
+import com.mmonteiroc.addesso.exceptions.entity.CategoryNotFoundException;
+import com.mmonteiroc.addesso.exceptions.entity.TicketNotFoundException;
 import com.mmonteiroc.addesso.exceptions.petition.NotRecivedRequiredParamsException;
 import com.mmonteiroc.addesso.exceptions.token.TokenInvalidException;
 import com.mmonteiroc.addesso.exceptions.token.TokenOverdatedException;
@@ -75,8 +76,15 @@ public class TicketController {
     }
 
     @GetMapping("/tickets/{id}")
-    public Ticket getSpecificTicket(@PathVariable(name = "id") Long idTicket) {
-        return this.ticketManager.findById(idTicket);
+    public Ticket getSpecificTicket(@PathVariable(name = "id") Long idTicket, HttpServletResponse response) throws IOException {
+        try {
+            return this.ticketManager.findById(idTicket);
+        } catch (TicketNotFoundException e) {
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            return null;
+        }
     }
 
     @GetMapping("/tickets/category/{id}")
@@ -84,7 +92,7 @@ public class TicketController {
         try {
             Category cat = this.categoryManager.findById(idCategory);
             return this.ticketManager.findByCategory(cat);
-        } catch (CategoryNotFound e) {
+        } catch (CategoryNotFoundException e) {
             e.printStackTrace();
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
@@ -143,7 +151,7 @@ public class TicketController {
 
             this.ticketManager.createOrUpdate(ticket);
             return new ResponseEntity<>("Ticket saved correctly", HttpStatus.OK);
-        } catch (NotRecivedRequiredParamsException | TokenInvalidException | TokenOverdatedException | CategoryNotFound e) {
+        } catch (NotRecivedRequiredParamsException | TokenInvalidException | TokenOverdatedException | CategoryNotFoundException e) {
             e.printStackTrace();
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
