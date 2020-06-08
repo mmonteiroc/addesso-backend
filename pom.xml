@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.mmonteiroc</groupId>
     <artifactId>addesso</artifactId>
-    <version>1.0.0-ALPHA</version>
+    <version>1.0.1-ALPHA</version>
     <packaging>war</packaging>
     <name>addesso</name>
     <description>

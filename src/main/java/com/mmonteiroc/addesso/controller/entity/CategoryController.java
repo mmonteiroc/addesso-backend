@@ -46,7 +46,6 @@ public class CategoryController {
 
     @GetMapping("/category/{id}")
     public Category getAllCategories(@PathParam("id") Long id, HttpServletResponse response) throws IOException {
-
         try {
             return this.categoryManager.findById(id);
         } catch (CategoryNotFoundException e) {
@@ -99,4 +98,23 @@ public class CategoryController {
         return new ResponseEntity<>("Category updated correctly", HttpStatus.OK);
     }
 
+    /*
+     * ------------------
+     *
+     *  DELETE MAPPINGS
+     *
+     * ------------------
+     * */
+    @DeleteMapping("/category")
+    @Transactional
+    public ResponseEntity<String> delete(@RequestBody String json) {
+        Category category = this.categoryManager.createFromJson(json);
+        if (category.getIdCategory() == null)
+            return new ResponseEntity<>("Id recived not existing on DDBB", HttpStatus.BAD_REQUEST);
+        if (category.getTickets() != null && category.getTickets().size() > 0)
+            return new ResponseEntity<>("CANNOT DELETE: category has tickets assigned", HttpStatus.BAD_REQUEST);
+
+        this.categoryManager.remove(category);
+        return new ResponseEntity<>("Category deleted correctly", HttpStatus.OK);
+    }
 }

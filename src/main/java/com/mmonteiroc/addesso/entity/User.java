@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -51,17 +52,34 @@ public class User {
 
     @OneToMany(mappedBy = "userAsigned", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
-    private Set<Ticket> ticketsAsigned;
+    private Set<Ticket> ticketsAsigned = new HashSet<>();
 
     @OneToMany(mappedBy = "userOwner", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
-    private Set<Ticket> ticketsCreated;
+    private Set<Ticket> ticketsCreated = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
-    private Set<Comment> comments;
+    private Set<Comment> comments = new HashSet<>();
 
     public User() {
+    }
+
+    public void addComment(Ticket ticket, String text) {
+        Comment comment = new Comment();
+        comment.setUser(this);
+        comment.setTicket(ticket);
+        comment.setText(text);
+        this.comments.add(comment);
+        ticket.getComments().add(comment);
+    }
+
+    public void removeComment(Ticket ticket) {
+        Comment comment = new Comment();
+        comment.setUser(this);
+        comment.setTicket(ticket);
+        ticket.getComments().remove(comment);
+        this.comments.remove(comment);
     }
 
     public Long getIduser() {

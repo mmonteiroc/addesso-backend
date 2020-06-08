@@ -3,12 +3,14 @@ package com.mmonteiroc.addesso.manager.entity;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.mmonteiroc.addesso.entity.Category;
+import com.mmonteiroc.addesso.entity.Status;
 import com.mmonteiroc.addesso.entity.Ticket;
-import com.mmonteiroc.addesso.entity.enums.TicketStatus;
 import com.mmonteiroc.addesso.exceptions.entity.CategoryNotFoundException;
+import com.mmonteiroc.addesso.exceptions.entity.StatusNotFoundException;
 import com.mmonteiroc.addesso.exceptions.entity.TicketNotFoundException;
 import com.mmonteiroc.addesso.exceptions.petition.NotRecivedRequiredParamsException;
 import com.mmonteiroc.addesso.repository.CategoryRepository;
+import com.mmonteiroc.addesso.repository.StatusRepository;
 import com.mmonteiroc.addesso.repository.TikcetRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,6 +37,9 @@ public class TicketManager {
     private CategoryRepository categoryRepository;
 
     @Autowired
+    private StatusRepository statusRepository;
+
+    @Autowired
     private Gson gson;
 
     public Ticket findById(Long id) throws TicketNotFoundException {
@@ -44,7 +49,7 @@ public class TicketManager {
     }
 
     public Set<Ticket> findByCategory(Category category) {
-        return this.tikcetRepository.findByCategory(category);
+        return this.tikcetRepository.findAllByCategory(category);
     }
 
     public Set<Ticket> findAll() {
@@ -64,7 +69,7 @@ public class TicketManager {
     public Ticket convertFromJson(String json) {
         try {
             return this.convertFromJson(json, false);
-        } catch (NotRecivedRequiredParamsException | CategoryNotFoundException e) {
+        } catch (NotRecivedRequiredParamsException | CategoryNotFoundException | StatusNotFoundException e) {
             e.printStackTrace();
             return null;
         }
@@ -76,7 +81,7 @@ public class TicketManager {
      * @return ticket with params recived
      * @throws NotRecivedRequiredParamsException if there was params required missing
      */
-    public Ticket convertFromJson(String json, boolean requireParams) throws NotRecivedRequiredParamsException, CategoryNotFoundException {
+    public Ticket convertFromJson(String json, boolean requireParams) throws NotRecivedRequiredParamsException, CategoryNotFoundException, StatusNotFoundException {
         JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
         Ticket ticket = new Ticket();
         if (jsonObject.get("idTicket") != null) {
@@ -107,30 +112,25 @@ public class TicketManager {
             throw new NotRecivedRequiredParamsException("Param category was required");
         }
 
-        if (jsonObject.get("status") != null) {
-            String stat = jsonObject.get("status").getAsString();
-            if (stat.toLowerCase().equals(TicketStatus.CREATED.toString().toLowerCase()))
-                ticket.setStatus(TicketStatus.CREATED);
-            else if (stat.toLowerCase().equals(TicketStatus.IN_PROGRESS.toString().toLowerCase()))
-                ticket.setStatus(TicketStatus.IN_PROGRESS);
-            else if (stat.toLowerCase().equals(TicketStatus.WAITING_EXTERNAL_HELP.toString().toLowerCase()))
-                ticket.setStatus(TicketStatus.WAITING_EXTERNAL_HELP);
-            else if (stat.toLowerCase().equals(TicketStatus.TO_REVISION.toString().toLowerCase()))
-                ticket.setStatus(TicketStatus.TO_REVISION);
-            else if (stat.toLowerCase().equals(TicketStatus.SOLVED.toString().toLowerCase()))
-                ticket.setStatus(TicketStatus.SOLVED);
-            else if (stat.toLowerCase().equals(TicketStatus.CLOSED.toString().toLowerCase()))
-                ticket.setStatus(TicketStatus.CLOSED);
+        if (jsonObject.get("idStatus") != null) {
+            Long stat = jsonObject.get("idStatus").getAsLong();
+
+            Status status = this.statusRepository.findByIdStatus(stat);
+            if (status == null) throw new StatusNotFoundException("Status with id [" + stat + "] was not found");
+            ticket.addStatus(status);
+        } else if (requireParams) {
+            throw new NotRecivedRequiredParamsException("Param idStatus was required");
         }
 
         return ticket;
     }
 
-    public Set<Ticket> findAllNotSolved() {
-        return this.tikcetRepository.findAllByStatusNotIn(TicketStatus.SOLVED, TicketStatus.CLOSED);
+    public Set<Ticket> findByStatus(Status toBe) {
+        return null;
     }
 
-    public Set<Ticket> findAllSolved() {
-        return this.tikcetRepository.findAllByStatus(TicketStatus.SOLVED);
+    public Set<Ticket> findByNotStatus(Status notToBe) {
+        return null;
     }
+
 }

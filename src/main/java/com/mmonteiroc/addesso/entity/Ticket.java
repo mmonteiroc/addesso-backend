@@ -1,10 +1,10 @@
 package com.mmonteiroc.addesso.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.mmonteiroc.addesso.entity.enums.TicketStatus;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -31,8 +31,9 @@ public class Ticket {
     @Column(name = "description", length = 400)
     private String description;
 
-    @Column(name = "status", columnDefinition = "tinyint")
-    private TicketStatus status;
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private Set<TicketHistory> ticketHistories;
 
     @ManyToOne
     @JoinColumn(name = "user_iduser_asigned")
@@ -51,11 +52,11 @@ public class Ticket {
 
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private Set<UploadedFile> atachedFiles;
+    private Set<UploadedFile> atachedFiles = new HashSet<>();
 
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private Set<Comment> comments;
+    private Set<Comment> comments = new HashSet<>();
 
 
     @Column(name = "created", columnDefinition = "DATETIME")
@@ -75,6 +76,14 @@ public class Ticket {
     @PreUpdate
     public void onUpdate() {
         this.lastUpdate = LocalDateTime.now();
+    }
+
+    public void addStatus(Status status) {
+        TicketHistory history = new TicketHistory();
+        history.setTicket(this);
+        history.setStatus(status);
+        this.ticketHistories.add(history);
+        status.getTicketHistories().add(history);
     }
 
     public Long getIdTicket() {
@@ -99,14 +108,6 @@ public class Ticket {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public TicketStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(TicketStatus status) {
-        this.status = status;
     }
 
     public User getUserAsigned() {
@@ -149,4 +150,27 @@ public class Ticket {
         this.comments = comments;
     }
 
+    public Set<TicketHistory> getTicketHistories() {
+        return ticketHistories;
+    }
+
+    public void setTicketHistories(Set<TicketHistory> ticketHistories) {
+        this.ticketHistories = ticketHistories;
+    }
+
+    public LocalDateTime getCreated() {
+        return created;
+    }
+
+    public void setCreated(LocalDateTime created) {
+        this.created = created;
+    }
+
+    public LocalDateTime getLastUpdate() {
+        return lastUpdate;
+    }
+
+    public void setLastUpdate(LocalDateTime lastUpdate) {
+        this.lastUpdate = lastUpdate;
+    }
 }

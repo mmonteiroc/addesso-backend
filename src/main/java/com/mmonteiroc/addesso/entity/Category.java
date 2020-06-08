@@ -3,6 +3,7 @@ package com.mmonteiroc.addesso.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -31,7 +32,7 @@ public class Category {
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
-    private Set<Ticket> tickets;
+    private Set<Ticket> tickets = new HashSet<>();
 
     public Category() {
     }

@@ -80,4 +80,9 @@ public class CategoryManager {
         Iterable<Category> iterable = Arrays.asList(categories);
         this.categoryRepository.saveAll(iterable);
     }
+
+    public void remove(Category... categories) {
+        Iterable<Category> iterable = Arrays.asList(categories);
+        this.categoryRepository.deleteAll(iterable);
+    }
 }

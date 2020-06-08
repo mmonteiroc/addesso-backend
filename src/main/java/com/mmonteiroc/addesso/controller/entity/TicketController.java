@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import com.mmonteiroc.addesso.entity.Category;
 import com.mmonteiroc.addesso.entity.Ticket;
 import com.mmonteiroc.addesso.entity.User;
-import com.mmonteiroc.addesso.entity.enums.TicketStatus;
 import com.mmonteiroc.addesso.exceptions.entity.CategoryNotFoundException;
+import com.mmonteiroc.addesso.exceptions.entity.StatusNotFoundException;
 import com.mmonteiroc.addesso.exceptions.entity.TicketNotFoundException;
 import com.mmonteiroc.addesso.exceptions.petition.NotRecivedRequiredParamsException;
 import com.mmonteiroc.addesso.exceptions.token.TokenInvalidException;
@@ -135,11 +135,6 @@ public class TicketController {
             if (ticket.getIdTicket() != null)
                 return new ResponseEntity<>("WE DONT ACCEPT ID_TICKET HERE", HttpStatus.BAD_REQUEST);
 
-            /*
-             * We set default status when created
-             * */
-            ticket.setStatus(TicketStatus.CREATED);
-
 
             /*
              * We set the owner
@@ -151,7 +146,7 @@ public class TicketController {
 
             this.ticketManager.createOrUpdate(ticket);
             return new ResponseEntity<>("Ticket saved correctly", HttpStatus.OK);
-        } catch (NotRecivedRequiredParamsException | TokenInvalidException | TokenOverdatedException | CategoryNotFoundException e) {
+        } catch (NotRecivedRequiredParamsException | TokenInvalidException | TokenOverdatedException | CategoryNotFoundException | StatusNotFoundException e) {
             e.printStackTrace();
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }

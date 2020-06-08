@@ -48,6 +48,11 @@ public class Comment {
     public Comment() {
     }
 
+    @PrePersist
+    public void prePersist() {
+        this.creationDate = LocalDateTime.now();
+    }
+
     @JsonProperty("iduser")
     public Long getIdUser() {
         return idUser;
