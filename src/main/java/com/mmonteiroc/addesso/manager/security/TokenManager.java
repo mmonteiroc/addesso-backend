@@ -77,4 +77,5 @@ public class TokenManager implements Serializable {
 
         return this.userRepository.findByEmail(email);
     }
+
 }

@@ -131,6 +131,23 @@
             <version>0.9.1</version>
         </dependency>
 
+
+        <dependency>
+                
+            <groupId>com.h2database</groupId>
+                
+            <artifactId>h2</artifactId>
+                
+            <scope>test</scope>
+                
+            <version>1.4.200</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

@@ -28,20 +28,20 @@ public class Ticket {
     @Column(name = "title")
     private String title;
 
-    @Column(name = "description", length = 400)
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private Set<TicketHistory> ticketHistories;
+    private Set<TicketHistory> ticketHistories = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "user_iduser_asigned")
     @JsonManagedReference
-    private User userAsigned;
+    private User userAssigned;
 
     @ManyToOne
-    @JoinColumn(name = "user_iduser_owner", nullable = false)
+    @JoinColumn(name = "user_iduser_owner")
     @JsonManagedReference
     private User userOwner;
 
@@ -83,7 +83,16 @@ public class Ticket {
         history.setTicket(this);
         history.setStatus(status);
         this.ticketHistories.add(history);
-        status.getTicketHistories().add(history);
+        //status.getTicketHistories().add(history);
+    }
+
+    public void addComment(User user, String text) {
+        Comment newComment = new Comment();
+        newComment.setTicket(this);
+        newComment.setUser(user);
+        newComment.setText(text);
+        this.comments.add(newComment);
+        //status.getTicketHistories().add(history);
     }
 
     public Long getIdTicket() {
@@ -110,12 +119,12 @@ public class Ticket {
         this.description = description;
     }
 
-    public User getUserAsigned() {
-        return userAsigned;
+    public User getUserAssigned() {
+        return userAssigned;
     }
 
-    public void setUserAsigned(User userAsigned) {
-        this.userAsigned = userAsigned;
+    public void setUserAssigned(User userAsigned) {
+        this.userAssigned = userAsigned;
     }
 
     public User getUserOwner() {

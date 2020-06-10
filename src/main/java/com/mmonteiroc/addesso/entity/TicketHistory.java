@@ -20,18 +20,18 @@ import java.time.LocalDateTime;
 public class TicketHistory {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idhistory")
     private Long idHistory;
 
     @ManyToOne
-    @JoinColumn(name = "status_idstatus", insertable = false, updatable = false)
+    @JoinColumn(name = "status_idstatus")
     @JsonManagedReference
     private Status status;
 
 
     @ManyToOne
-    @JoinColumn(name = "ticket_idticket", insertable = false, updatable = false)
+    @JoinColumn(name = "ticket_idticket")
     @JsonBackReference
     private Ticket ticket;
 
@@ -45,6 +45,7 @@ public class TicketHistory {
     public void prePersist() {
         this.statusUpdatedDate = LocalDateTime.now();
     }
+
 
     public Status getStatus() {
         return status;
@@ -68,5 +69,13 @@ public class TicketHistory {
 
     public void setStatusUpdatedDate(LocalDateTime statusUpdatedDate) {
         this.statusUpdatedDate = statusUpdatedDate;
+    }
+
+    public Long getIdHistory() {
+        return idHistory;
+    }
+
+    public void setIdHistory(Long idHistory) {
+        this.idHistory = idHistory;
     }
 }

@@ -53,11 +53,15 @@ public class StatusManager {
         }
         if (jsonObject.get("shortName") != null) {
             status.setShortName(jsonObject.get("shortName").getAsString());
+            if (status.getShortName().equals(""))
+                throw new NotRecivedRequiredParamsException("Param shortName was required");
         } else if (requireParams) {
             throw new NotRecivedRequiredParamsException("Param shortName was required");
         }
         if (jsonObject.get("description") != null) {
             status.setDescription(jsonObject.get("description").getAsString());
+            if (status.getDescription().equals(""))
+                throw new NotRecivedRequiredParamsException("Param description was required");
         } else if (requireParams) {
             throw new NotRecivedRequiredParamsException("Param description was required");
         }
@@ -67,6 +71,6 @@ public class StatusManager {
 
     public void createOrUpdate(Status... statuses) {
         Iterable<Status> iterable = Arrays.asList(statuses);
-        this.statusRepository.deleteAll(iterable);
+        this.statusRepository.saveAll(iterable);
     }
 }

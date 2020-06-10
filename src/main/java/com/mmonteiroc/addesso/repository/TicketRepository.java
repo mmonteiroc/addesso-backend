@@ -15,8 +15,9 @@ import java.util.Set;
  * Package: com.mmonteiroc.addesso.repository
  * Project: addesso
  */
-public interface TikcetRepository extends CrudRepository<Ticket, Long> {
+public interface TicketRepository extends CrudRepository<Ticket, Long> {
     Ticket findByIdTicket(Long id);
+
     Set<Ticket> findAll();
 
     Set<Ticket> findAllByCategory(Category cat);

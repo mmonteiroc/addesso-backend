@@ -19,4 +19,6 @@ public interface TicketHistoryRepository extends CrudRepository<TicketHistory, L
     TicketHistory findByIdHistory(Long id);
 
     Set<TicketHistory> findAllByTicket(Ticket ticket);
+
+    Set<TicketHistory> findAllByTicketOrderByStatusUpdatedDateDesc(Ticket ticket);
 }

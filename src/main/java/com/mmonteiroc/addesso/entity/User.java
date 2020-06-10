@@ -50,7 +50,7 @@ public class User {
     @Column(name = "profile_photo")
     private String profilePhoto;
 
-    @OneToMany(mappedBy = "userAsigned", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
     private Set<Ticket> ticketsAsigned = new HashSet<>();
 

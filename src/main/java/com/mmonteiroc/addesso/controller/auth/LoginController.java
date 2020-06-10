@@ -9,6 +9,8 @@ import com.mmonteiroc.addesso.exceptions.token.TokenOverdatedException;
 import com.mmonteiroc.addesso.manager.entity.UserManager;
 import com.mmonteiroc.addesso.manager.security.TokenManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -59,7 +61,7 @@ public class LoginController {
 
             Map<String, String> toReturn = new HashMap<>();
             toReturn.put("access_token", this.tokenManager.generateAcessToken(toValidate));
-            toReturn.put("refresh_token", this.tokenManager.generateAcessToken(toValidate));
+            toReturn.put("refresh_token", this.tokenManager.generateRefreshToken(toValidate));
 
             List<String> roles = new ArrayList<>();
             if (toValidate.isAdmin()) roles.add("\"admin\"");
@@ -106,9 +108,30 @@ public class LoginController {
             return map;
         } catch (TokenOverdatedException | TokenInvalidException e) {
             e.printStackTrace();
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
             return null;
         }
+    }
+
+    @PostMapping("/auth/root")
+    public ResponseEntity<String> createRootUser(@RequestBody String json) {
+        if (this.userManager.findAll().size() != 0) {
+            return new ResponseEntity<>("MEEEEEc", HttpStatus.FORBIDDEN);
+        }
+        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+        String passwd = jsonObject.get("password") != null ? jsonObject.get("password").getAsString() : null;
+
+        if (passwd == null) return new ResponseEntity<>("MEEEEEc", HttpStatus.BAD_REQUEST);
+
+        User user = new User();
+        user.setName("root");
+        user.setSurname("administrator");
+        user.setEmail("root");
+        user.setPasswd(passwd);
+        user.setAdmin(true);
+        user.setTechnician(false);
+        this.userManager.create(user);
+        return new ResponseEntity<>("OK", HttpStatus.OK);
     }
 }

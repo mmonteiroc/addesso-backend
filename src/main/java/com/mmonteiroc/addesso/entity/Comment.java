@@ -18,18 +18,21 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "comment")
-@IdClass(CommentId.class)
 public class Comment {
 
+
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "idcomment")
+    private Long idComment;
+
     @ManyToOne
-    @JoinColumn(name = "user_iduser", insertable = false, updatable = false)
+    @JoinColumn(name = "user_iduser")
     @JsonManagedReference
     private User user;
 
-    @Id
     @ManyToOne
-    @JoinColumn(name = "ticket_idticket", insertable = false, updatable = false)
+    @JoinColumn(name = "ticket_idticket")
     @JsonBackReference
     private Ticket ticket;
 
@@ -38,7 +41,7 @@ public class Comment {
     @Transient
     private Long idTicket;
 
-    @Column(name = "text", length = 400)
+    @Column(name = "text", columnDefinition = "TEXT")
     private String text;
 
     @Column(name = "creation_date", columnDefinition = "DATETIME")
@@ -101,5 +104,13 @@ public class Comment {
 
     public void setTicket(Ticket ticket) {
         this.ticket = ticket;
+    }
+
+    public Long getIdComment() {
+        return idComment;
+    }
+
+    public void setIdComment(Long idComment) {
+        this.idComment = idComment;
     }
 }

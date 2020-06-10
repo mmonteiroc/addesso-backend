@@ -1,8 +1,10 @@
 package com.mmonteiroc.addesso.controller.entity;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.mmonteiroc.addesso.entity.Category;
 import com.mmonteiroc.addesso.entity.Ticket;
+import com.mmonteiroc.addesso.entity.TicketHistory;
 import com.mmonteiroc.addesso.entity.User;
 import com.mmonteiroc.addesso.exceptions.entity.CategoryNotFoundException;
 import com.mmonteiroc.addesso.exceptions.entity.StatusNotFoundException;
@@ -11,6 +13,7 @@ import com.mmonteiroc.addesso.exceptions.petition.NotRecivedRequiredParamsExcept
 import com.mmonteiroc.addesso.exceptions.token.TokenInvalidException;
 import com.mmonteiroc.addesso.exceptions.token.TokenOverdatedException;
 import com.mmonteiroc.addesso.manager.entity.CategoryManager;
+import com.mmonteiroc.addesso.manager.entity.TicketHistoryManager;
 import com.mmonteiroc.addesso.manager.entity.TicketManager;
 import com.mmonteiroc.addesso.manager.entity.UserManager;
 import com.mmonteiroc.addesso.manager.security.TokenManager;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
+import javax.websocket.server.PathParam;
 import java.io.IOException;
 import java.util.Set;
 
@@ -50,29 +54,46 @@ public class TicketController {
     private TokenManager tokenManager;
 
     @Autowired
+    private TicketHistoryManager ticketHistoryManager;
+
+    @Autowired
     private Gson gson;
 
     /*
-    * --------------
-    *
-    *  GET MAPPINGS
-    *
-    * --------------
-    * */
+     * --------------
+     *
+     *  GET MAPPINGS
+     *
+     * --------------
+     * */
 
     @GetMapping("/tickets")
     public Set<Ticket> getAllTickets() {
         return this.ticketManager.findAll();
     }
 
+    @GetMapping("/tickets/{id}/history")
+    public Set<TicketHistory> getTicketHistory(@PathParam("id") Long id, HttpServletResponse response) throws IOException {
+
+        try {
+            Ticket ticket = this.ticketManager.findById(id);
+            return this.ticketHistoryManager.findAllByTicket(ticket);
+        } catch (TicketNotFoundException e) {
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            return null;
+        }
+    }
+
     @GetMapping("/tickets/not/solved")
     public Set<Ticket> getTicketsNotSolved() {
-        return this.ticketManager.findAllNotSolved();
+        return null;//this.ticketManager.findAllNotSolved();
     }
 
     @GetMapping("/tickets/solved")
     public Set<Ticket> getTicketsSolved() {
-        return this.ticketManager.findAllSolved();
+        return null;//this.ticketManager.findAllSolved();
     }
 
     @GetMapping("/tickets/{id}")
@@ -123,7 +144,6 @@ public class TicketController {
      * @throws IOException
      */
     @PostMapping("/tickets")
-    @Transactional
     public ResponseEntity<String> addTicket(@RequestBody String json, HttpServletResponse response, HttpServletRequest request) throws IOException {
         try {
             Ticket ticket = this.ticketManager.convertFromJson(json, true);
@@ -135,7 +155,6 @@ public class TicketController {
             if (ticket.getIdTicket() != null)
                 return new ResponseEntity<>("WE DONT ACCEPT ID_TICKET HERE", HttpStatus.BAD_REQUEST);
 
-
             /*
              * We set the owner
              * */
@@ -146,12 +165,43 @@ public class TicketController {
 
             this.ticketManager.createOrUpdate(ticket);
             return new ResponseEntity<>("Ticket saved correctly", HttpStatus.OK);
-        } catch (NotRecivedRequiredParamsException | TokenInvalidException | TokenOverdatedException | CategoryNotFoundException | StatusNotFoundException e) {
+        } catch (NotRecivedRequiredParamsException | TokenInvalidException | CategoryNotFoundException | StatusNotFoundException | TokenOverdatedException e) {
             e.printStackTrace();
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
+    @PostMapping("/ticket/comment")
+    public ResponseEntity<String> addComment(@RequestBody String json, HttpServletRequest request) {
+        try {
+            Ticket ticket = this.ticketManager.convertFromJson(json);
+            /*
+             * In case they send us a id, we dont wanna update cause
+             * this endpoint is only to create tickets.
+             * So we erase this id
+             * */
+            if (ticket.getIdTicket() == null)
+                return new ResponseEntity<>("WE NEED ID_TICKET HERE", HttpStatus.BAD_REQUEST);
+
+            /*
+             * We set the owner
+             * */
+            String token = request.getHeader("Authorization");
+            token = token.replace("Bearer ", "");
+            User commenter = this.tokenManager.getUsuariFromToken(token);
+
+            JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+            if (jsonObject.get("text") != null && !jsonObject.get("text").getAsString().equals(""))
+                ticket.addComment(commenter, jsonObject.get("text").getAsString());
+            else return new ResponseEntity<>("NO TEXT SENT", HttpStatus.BAD_REQUEST);
+
+            this.ticketManager.createOrUpdate(ticket);
+            return new ResponseEntity<>("Ticket saved correctly", HttpStatus.OK);
+        } catch (TokenInvalidException | TokenOverdatedException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
     /*
      * --------------
      *
@@ -201,14 +251,52 @@ public class TicketController {
             return new ResponseEntity<>("ID USER NOT CORRECT", HttpStatus.BAD_REQUEST);
         if (ticket.getIdTicket() == null)
             return new ResponseEntity<>("ID TICKET NOT CORRECT", HttpStatus.BAD_REQUEST);
-        if (ticket.getUserAsigned() != null && ticket.getUserAsigned().equals(worker))
+        if (ticket.getUserAssigned() != null && ticket.getUserAssigned().equals(worker))
             return new ResponseEntity<>("USER WAS ALREADY ASIGNED TO THIS TICKET", HttpStatus.BAD_REQUEST);
         if (!worker.isTechnician())
             return new ResponseEntity<>("The worker to assign has to be a technician", HttpStatus.BAD_REQUEST);
 
-        ticket.setUserAsigned(worker);
+        ticket.setUserAssigned(worker);
         this.ticketManager.createOrUpdate(ticket);
         return new ResponseEntity<>("USER ASINGED CORRECTLY", HttpStatus.OK);
     }
 
+    @DeleteMapping("/tickets/status")
+    public ResponseEntity<String> removeStatus(@RequestBody String json) {
+        JsonObject obj = this.gson.fromJson(json, JsonObject.class);
+        Long id = obj.get("idHistory") != null ? obj.get("idHistory").getAsLong() : null;
+        if (id == null) return new ResponseEntity<>("NO ID RECIVED", HttpStatus.BAD_REQUEST);
+
+        TicketHistory statusChange = this.ticketHistoryManager.findById(id);
+        this.ticketHistoryManager.delete(statusChange);
+        return new ResponseEntity<>("This change has been erased from the history", HttpStatus.OK);
+    }
+
+
+    @PutMapping("/tickets/worker/me")
+    @Transactional
+    public ResponseEntity<String> assignMyself(@RequestBody String json, HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        token = token.replace("Bearer ", "");
+        User worker = null;
+        try {
+            worker = this.tokenManager.getUsuariFromToken(token);
+        } catch (TokenInvalidException | TokenOverdatedException e) {
+            e.printStackTrace();
+        }
+
+        Ticket ticket = this.ticketManager.convertFromJson(json);
+        if (worker.getIduser() == null)
+            return new ResponseEntity<>("ID USER NOT CORRECT", HttpStatus.BAD_REQUEST);
+        if (ticket.getIdTicket() == null)
+            return new ResponseEntity<>("ID TICKET NOT CORRECT", HttpStatus.BAD_REQUEST);
+        if (ticket.getUserAssigned() != null && ticket.getUserAssigned().equals(worker))
+            return new ResponseEntity<>("USER WAS ALREADY ASIGNED TO THIS TICKET", HttpStatus.BAD_REQUEST);
+        if (!worker.isTechnician())
+            return new ResponseEntity<>("The worker to assign has to be a technician", HttpStatus.BAD_REQUEST);
+
+        ticket.setUserAssigned(worker);
+        this.ticketManager.createOrUpdate(ticket);
+        return new ResponseEntity<>("USER ASINGED CORRECTLY", HttpStatus.OK);
+    }
 }

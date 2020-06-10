@@ -25,7 +25,7 @@ public class TicketHistoryManager {
     private TicketHistoryRepository ticketHistoryRepository;
 
     public Set<TicketHistory> findAllByTicket(Ticket ticket) {
-        return this.ticketHistoryRepository.findAllByTicket(ticket);
+        return this.ticketHistoryRepository.findAllByTicketOrderByStatusUpdatedDateDesc(ticket);
     }
 
     public TicketHistory findById(Long id) {

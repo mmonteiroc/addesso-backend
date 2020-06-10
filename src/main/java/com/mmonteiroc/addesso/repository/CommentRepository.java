@@ -1,7 +1,6 @@
 package com.mmonteiroc.addesso.repository;
 
 import com.mmonteiroc.addesso.entity.Comment;
-import com.mmonteiroc.addesso.entity.CommentId;
 import org.springframework.data.repository.CrudRepository;
 
 /**
@@ -13,5 +12,5 @@ import org.springframework.data.repository.CrudRepository;
  * Package: com.mmonteiroc.addesso.repository
  * Project: addesso
  */
-public interface CommentRepository extends CrudRepository<Comment, CommentId> {
+public interface CommentRepository extends CrudRepository<Comment, Long> {
 }

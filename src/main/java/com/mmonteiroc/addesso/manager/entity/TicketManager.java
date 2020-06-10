@@ -11,7 +11,7 @@ import com.mmonteiroc.addesso.exceptions.entity.TicketNotFoundException;
 import com.mmonteiroc.addesso.exceptions.petition.NotRecivedRequiredParamsException;
 import com.mmonteiroc.addesso.repository.CategoryRepository;
 import com.mmonteiroc.addesso.repository.StatusRepository;
-import com.mmonteiroc.addesso.repository.TikcetRepository;
+import com.mmonteiroc.addesso.repository.TicketRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +31,7 @@ import java.util.Set;
 public class TicketManager {
 
     @Autowired
-    private TikcetRepository tikcetRepository;
+    private TicketRepository ticketRepository;
 
     @Autowired
     private CategoryRepository categoryRepository;
@@ -43,27 +43,27 @@ public class TicketManager {
     private Gson gson;
 
     public Ticket findById(Long id) throws TicketNotFoundException {
-        Ticket ticket = this.tikcetRepository.findByIdTicket(id);
+        Ticket ticket = this.ticketRepository.findByIdTicket(id);
         if (ticket == null) throw new TicketNotFoundException("Ticket with id [" + id + "] not found");
-        return this.tikcetRepository.findByIdTicket(id);
+        return this.ticketRepository.findByIdTicket(id);
     }
 
     public Set<Ticket> findByCategory(Category category) {
-        return this.tikcetRepository.findAllByCategory(category);
+        return this.ticketRepository.findAllByCategory(category);
     }
 
     public Set<Ticket> findAll() {
-        return this.tikcetRepository.findAll();
+        return this.ticketRepository.findAll();
     }
 
     public void createOrUpdate(Ticket... tickets) {
         Iterable<Ticket> iterable = Arrays.asList(tickets);
-        this.tikcetRepository.saveAll(iterable);
+        this.ticketRepository.saveAll(iterable);
     }
 
     public void delete(Ticket... tickets) {
         Iterable<Ticket> iterable = Arrays.asList(tickets);
-        this.tikcetRepository.deleteAll(iterable);
+        this.ticketRepository.deleteAll(iterable);
     }
 
     public Ticket convertFromJson(String json) {

@@ -27,8 +27,9 @@ public class Status {
     @Column(name = "short_name")
     private String shortName;
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
+
 
     @OneToMany(mappedBy = "status", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
@@ -68,4 +69,6 @@ public class Status {
     public void setTicketHistories(Set<TicketHistory> ticketHistories) {
         this.ticketHistories = ticketHistories;
     }
+
+
 }
