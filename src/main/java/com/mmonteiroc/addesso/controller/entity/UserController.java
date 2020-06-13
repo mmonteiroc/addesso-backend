@@ -2,7 +2,10 @@ package com.mmonteiroc.addesso.controller.entity;
 
 import com.mmonteiroc.addesso.entity.User;
 import com.mmonteiroc.addesso.exceptions.petition.NotRecivedRequiredParamsException;
+import com.mmonteiroc.addesso.exceptions.token.TokenInvalidException;
+import com.mmonteiroc.addesso.exceptions.token.TokenOverdatedException;
 import com.mmonteiroc.addesso.manager.entity.UserManager;
+import com.mmonteiroc.addesso.manager.security.TokenManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +15,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
+import java.io.IOException;
 import java.util.Set;
 
 /**
@@ -30,6 +35,9 @@ public class UserController {
     @Autowired
     private UserManager userManager;
 
+    @Autowired
+    private TokenManager tokenManager;
+
     /*
      * --------------
      *
@@ -38,9 +46,17 @@ public class UserController {
      * --------------
      * */
     @GetMapping("/user/me")
-    public User getMyOwnInf(HttpServletRequest request) {
-
-        return null;
+    public User getMyOwnInf(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String token = request.getHeader("Authorization");
+        token = token.replace("Bearer ", "");
+        try {
+            return this.tokenManager.getUsuariFromToken(token);
+        } catch (TokenInvalidException | TokenOverdatedException e) {
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            return null;
+        }
     }
 
     @GetMapping("/users")
