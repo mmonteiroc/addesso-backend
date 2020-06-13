@@ -1,7 +1,7 @@
 # ADDESSO - BACKEND 🖥
 
-_Open source project for a web application that allows have an amazing control for the tickets and helpdesk in the company._
-
+_Open source project for a web application that allows have an amazing control for the issues of a company. Can be used
+in a company so the helpdesk works with the users issues or can be for issues tracking for a website p.e._
 
 
 ### Pre-requirements 📋
