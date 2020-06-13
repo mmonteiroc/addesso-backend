@@ -1,6 +1,7 @@
-package com.mmonteiroc.addesso.controller.entity;
+package com.mmonteiroc.addesso.controller;
 
 import com.mmonteiroc.addesso.entity.UploadedFile;
+import com.mmonteiroc.addesso.exceptions.entity.UploadedFileNotFoundException;
 import com.mmonteiroc.addesso.manager.administration.FileStorageManager;
 import com.mmonteiroc.addesso.manager.entity.UploadedFileManager;
 import com.mmonteiroc.addesso.manager.security.TokenManager;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -51,30 +53,35 @@ public class ResourceController {
      * */
     @GetMapping("/resource/{id}")
     @ResponseBody
-    public ResponseEntity getFile(@PathVariable("id") Long id) throws IOException {
-        UploadedFile file = this.uploadedFileManager.findById(id);
-        LocalDateTime uploadDate = file.getUploadDate();
-        String year = uploadDate.getYear() + "";
-        String month = uploadDate.getMonthValue() + "";
-        String day = uploadDate.getDayOfMonth() + "";
-        String finalDir = year + File.separator + month + File.separator + day + File.separator;
+    public ResponseEntity getFile(@PathVariable("id") Long id, HttpServletResponse response) throws IOException {
+        try {
+            UploadedFile file = this.uploadedFileManager.findById(id);
+            LocalDateTime uploadDate = file.getUploadDate();
+            String year = uploadDate.getYear() + "";
+            String month = uploadDate.getMonthValue() + "";
+            String day = uploadDate.getDayOfMonth() + "";
+            String finalDir = year + File.separator + month + File.separator + day + File.separator;
 
-        // Load file as Resource
-        Resource resource = fileStorageManager.loadFileAsResource(environment.getProperty("UPLOADS_DIRECTORY") + finalDir + file.getName());
+            // Load file as Resource
+            Resource resource = fileStorageManager.loadFileAsResource(environment.getProperty("UPLOADS_DIRECTORY") + finalDir + file.getName());
 
-        // Try to determine file's content type
-        String contentType = file.getContentType();
+            // Try to determine file's content type
+            String contentType = file.getContentType();
 
 
-        // Fallback to the default content type if type could not be determined
-        if (contentType == null) {
-            contentType = "application/octet-stream";
+            // Fallback to the default content type if type could not be determined
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
+        } catch (UploadedFileNotFoundException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
-                .body(resource);
     }
 
 

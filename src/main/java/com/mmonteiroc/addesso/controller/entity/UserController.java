@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+import java.util.Set;
 
 /**
  * Code created by: mmonteiroc
@@ -37,9 +38,14 @@ public class UserController {
      * --------------
      * */
     @GetMapping("/user/me")
-    public User getMyOwnInf(HttpServletRequest request){
+    public User getMyOwnInf(HttpServletRequest request) {
 
         return null;
+    }
+
+    @GetMapping("/users")
+    public Set<User> getAllUsers() {
+        return this.userManager.findAll();
     }
 
     /*

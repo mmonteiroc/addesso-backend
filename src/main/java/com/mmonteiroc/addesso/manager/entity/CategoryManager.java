@@ -56,7 +56,7 @@ public class CategoryManager {
 
         if (jsonObject.get("idCategory") != null) {
             try {
-                category = this.findById(jsonObject.get("idTicket").getAsLong());
+                category = this.findById(jsonObject.get("idCategory").getAsLong());
             } catch (CategoryNotFoundException e) {
                 e.printStackTrace();
             }

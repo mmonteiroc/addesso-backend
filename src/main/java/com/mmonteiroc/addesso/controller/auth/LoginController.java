@@ -11,6 +11,7 @@ import com.mmonteiroc.addesso.manager.security.TokenManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -114,24 +115,36 @@ public class LoginController {
         }
     }
 
+    @GetMapping("/auth/root")
+    public ResponseEntity canCreateAdmin() {
+        if (this.userManager.findAll().size() != 0) {
+            return ResponseEntity.badRequest().build();
+        } else {
+            return ResponseEntity.ok().build();
+        }
+    }
+
     @PostMapping("/auth/root")
     public ResponseEntity<String> createRootUser(@RequestBody String json) {
-        if (this.userManager.findAll().size() != 0) {
-            return new ResponseEntity<>("MEEEEEc", HttpStatus.FORBIDDEN);
+        synchronized (this) {
+            if (this.userManager.findAll().size() != 0) {
+                return new ResponseEntity<>("You can only create a root user if there isn't users in the database", HttpStatus.FORBIDDEN);
+            }
+            JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+            String passwd = jsonObject.get("password") != null ? jsonObject.get("password").getAsString() : null;
+
+            if (passwd == null || passwd.equals(""))
+                return new ResponseEntity<>("Need a password, user cannot have empty password", HttpStatus.BAD_REQUEST);
+
+            User user = new User();
+            user.setName("root");
+            user.setSurname("administrator");
+            user.setEmail("root");
+            user.setPasswd(passwd);
+            user.setAdmin(true);
+            user.setTechnician(false);
+            this.userManager.create(user);
+            return new ResponseEntity<>("OK", HttpStatus.OK);
         }
-        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
-        String passwd = jsonObject.get("password") != null ? jsonObject.get("password").getAsString() : null;
-
-        if (passwd == null) return new ResponseEntity<>("MEEEEEc", HttpStatus.BAD_REQUEST);
-
-        User user = new User();
-        user.setName("root");
-        user.setSurname("administrator");
-        user.setEmail("root");
-        user.setPasswd(passwd);
-        user.setAdmin(true);
-        user.setTechnician(false);
-        this.userManager.create(user);
-        return new ResponseEntity<>("OK", HttpStatus.OK);
     }
 }

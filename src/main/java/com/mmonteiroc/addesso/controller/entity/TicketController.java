@@ -6,12 +6,14 @@ import com.mmonteiroc.addesso.entity.*;
 import com.mmonteiroc.addesso.exceptions.entity.CategoryNotFoundException;
 import com.mmonteiroc.addesso.exceptions.entity.StatusNotFoundException;
 import com.mmonteiroc.addesso.exceptions.entity.TicketNotFoundException;
+import com.mmonteiroc.addesso.exceptions.entity.UploadedFileNotFoundException;
 import com.mmonteiroc.addesso.exceptions.petition.NotRecivedRequiredParamsException;
 import com.mmonteiroc.addesso.exceptions.token.TokenInvalidException;
 import com.mmonteiroc.addesso.exceptions.token.TokenOverdatedException;
 import com.mmonteiroc.addesso.manager.administration.FileStorageManager;
 import com.mmonteiroc.addesso.manager.entity.*;
 import com.mmonteiroc.addesso.manager.security.TokenManager;
+import com.mmonteiroc.addesso.util.Resources;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -25,7 +27,6 @@ import javax.transaction.Transactional;
 import javax.websocket.server.PathParam;
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.Set;
 
 /**
@@ -345,16 +346,21 @@ public class TicketController {
      * */
     @DeleteMapping("/ticket/file/{id}")
     public ResponseEntity<String> deleteFile(@PathVariable("id") Long id) {
-        UploadedFile file = this.uploadedFileManager.findById(id);
+        try {
+            UploadedFile file = this.uploadedFileManager.findById(id);
 
-        File sysFile = new File(environment.getProperty("UPLOADS_DIRECTORY") + this.getUploadDir(file.getUploadDate()) + file.getName());
 
-        boolean result = sysFile.delete();
+            File sysFile = new File(environment.getProperty("UPLOADS_DIRECTORY") + Resources.getUploadDir(file.getUploadDate()) + file.getName());
 
-        if (!result) return ResponseEntity.badRequest().body("NO POSIBLE DELETE FILE");
-        this.uploadedFileManager.delete(file);
+            boolean result = sysFile.delete();
 
-        return ResponseEntity.ok("file deleted correctly");
+            if (!result) return ResponseEntity.badRequest().body("NO POSIBLE DELETE FILE");
+            this.uploadedFileManager.delete(file);
+
+            return ResponseEntity.ok("file deleted correctly");
+        } catch (UploadedFileNotFoundException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     /*
@@ -373,7 +379,7 @@ public class TicketController {
          * los borramos del sistema
          * */
         for (UploadedFile file : files) {
-            File sysFile = new File(environment.getProperty("UPLOADS_DIRECTORY") + this.getUploadDir(file.getUploadDate()) + file.getName());
+            File sysFile = new File(environment.getProperty("UPLOADS_DIRECTORY") + Resources.getUploadDir(file.getUploadDate()) + file.getName());
 
             boolean result = sysFile.delete();
 
@@ -401,11 +407,4 @@ public class TicketController {
         return new ResponseEntity<>("This change has been erased from the history", HttpStatus.OK);
     }
 
-
-    private String getUploadDir(LocalDateTime uploadDate) {
-        String year = uploadDate.getYear() + "";
-        String month = uploadDate.getMonthValue() + "";
-        String day = uploadDate.getDayOfMonth() + "";
-        return year + File.separator + month + File.separator + day + File.separator;
-    }
 }

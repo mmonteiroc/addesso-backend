@@ -94,4 +94,16 @@ public class UploadedFile {
     public void setContentType(String contentType) {
         this.contentType = contentType;
     }
+
+    @Override
+    public String toString() {
+        return "UploadedFile{" +
+                "idFile=" + idFile +
+                ", name='" + name + '\'' +
+                ", uploadDate=" + uploadDate +
+                ", filetype='" + filetype + '\'' +
+                ", contentType='" + contentType + '\'' +
+                ", ticket=" + ticket +
+                '}';
+    }
 }
