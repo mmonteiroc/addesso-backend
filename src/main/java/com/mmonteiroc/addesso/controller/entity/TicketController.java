@@ -2,31 +2,30 @@ package com.mmonteiroc.addesso.controller.entity;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.mmonteiroc.addesso.entity.Category;
-import com.mmonteiroc.addesso.entity.Ticket;
-import com.mmonteiroc.addesso.entity.TicketHistory;
-import com.mmonteiroc.addesso.entity.User;
+import com.mmonteiroc.addesso.entity.*;
 import com.mmonteiroc.addesso.exceptions.entity.CategoryNotFoundException;
 import com.mmonteiroc.addesso.exceptions.entity.StatusNotFoundException;
 import com.mmonteiroc.addesso.exceptions.entity.TicketNotFoundException;
 import com.mmonteiroc.addesso.exceptions.petition.NotRecivedRequiredParamsException;
 import com.mmonteiroc.addesso.exceptions.token.TokenInvalidException;
 import com.mmonteiroc.addesso.exceptions.token.TokenOverdatedException;
-import com.mmonteiroc.addesso.manager.entity.CategoryManager;
-import com.mmonteiroc.addesso.manager.entity.TicketHistoryManager;
-import com.mmonteiroc.addesso.manager.entity.TicketManager;
-import com.mmonteiroc.addesso.manager.entity.UserManager;
+import com.mmonteiroc.addesso.manager.administration.FileStorageManager;
+import com.mmonteiroc.addesso.manager.entity.*;
 import com.mmonteiroc.addesso.manager.security.TokenManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import javax.websocket.server.PathParam;
+import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 /**
@@ -40,6 +39,9 @@ import java.util.Set;
  */
 @RestController
 public class TicketController {
+
+    @Autowired
+    private Environment environment;
 
     @Autowired
     private TicketManager ticketManager;
@@ -58,6 +60,12 @@ public class TicketController {
 
     @Autowired
     private Gson gson;
+
+    @Autowired
+    private UploadedFileManager uploadedFileManager;
+
+    @Autowired
+    private FileStorageManager fileStorageManager;
 
     /*
      * --------------
@@ -121,6 +129,19 @@ public class TicketController {
         }
     }
 
+    @GetMapping("ticket/{id}/file")
+    public Set<UploadedFile> getFilesOfTicket(@PathVariable("id") Long id, HttpServletResponse response) throws IOException {
+        try {
+            Ticket ticket = this.ticketManager.findById(id);
+            return ticket.getAtachedFiles();
+        } catch (TicketNotFoundException e) {
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            return null;
+        }
+    }
+
     /*
      * ---------------
      *
@@ -131,13 +152,12 @@ public class TicketController {
 
 
     /**
-     * @param json json where all the params are recived. We expect a JSON with the next structure:
-     *             {
-     * 	                title: 'HERE TITLE OF TICKET',
-     * 	                description: 'DESCRIPTION',
-     * 	                idCategory: 2 // NUMBER OF CATEGORY - HAS TO EXIST IN DATABASE
-     *             }
-     *
+     * @param json     json where all the params are recived. We expect a JSON with the next structure:
+     *                 {
+     *                 title: 'HERE TITLE OF TICKET',
+     *                 description: 'DESCRIPTION',
+     *                 idCategory: 2 // NUMBER OF CATEGORY - HAS TO EXIST IN DATABASE
+     *                 }
      * @param response 200 OK, 401 Your token is invalid or overdated, 403 NOT PERMISION TO THIS ACTION
      * @param request
      * @return
@@ -168,6 +188,31 @@ public class TicketController {
         } catch (NotRecivedRequiredParamsException | TokenInvalidException | CategoryNotFoundException | StatusNotFoundException | TokenOverdatedException e) {
             e.printStackTrace();
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/ticket/{id}/file")
+    public ResponseEntity<String> attachFiles(@PathVariable("id") Long id, @RequestPart(value = "file") final MultipartFile fileToUpload) {
+
+        try {
+            Ticket ticket = this.ticketManager.findById(id);
+            UploadedFile file = new UploadedFile();
+
+
+            String uriSaved = fileStorageManager.saveMultiparFiles(fileToUpload);
+
+            file.setContentType(fileToUpload.getContentType());
+            file.setFiletype(uriSaved.substring(uriSaved.lastIndexOf('.') + 1));
+            file.setName(uriSaved);
+            file.setTicket(ticket);
+
+
+            ticket.getAtachedFiles().add(file);
+            this.ticketManager.createOrUpdate(ticket);
+            return ResponseEntity.ok("file uploaded correctly");
+        } catch (TicketNotFoundException | IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
@@ -214,10 +259,10 @@ public class TicketController {
     /**
      * @param json data to modify the ticket, expected to be like:
      *             {
-     * 	            idTicket:1,
-     * 	            title:'HERE TITLE MODIFIED',
-     * 	            description:'DESC MODIFIED',
-     * 	            idCategory: 2 // REQUIRED - HAS TO EXIST IN DDBB
+     *             idTicket:1,
+     *             title:'HERE TITLE MODIFIED',
+     *             description:'DESC MODIFIED',
+     *             idCategory: 2 // REQUIRED - HAS TO EXIST IN DDBB
      *             }
      * @return
      */
@@ -261,17 +306,6 @@ public class TicketController {
         return new ResponseEntity<>("USER ASINGED CORRECTLY", HttpStatus.OK);
     }
 
-    @DeleteMapping("/tickets/status")
-    public ResponseEntity<String> removeStatus(@RequestBody String json) {
-        JsonObject obj = this.gson.fromJson(json, JsonObject.class);
-        Long id = obj.get("idHistory") != null ? obj.get("idHistory").getAsLong() : null;
-        if (id == null) return new ResponseEntity<>("NO ID RECIVED", HttpStatus.BAD_REQUEST);
-
-        TicketHistory statusChange = this.ticketHistoryManager.findById(id);
-        this.ticketHistoryManager.delete(statusChange);
-        return new ResponseEntity<>("This change has been erased from the history", HttpStatus.OK);
-    }
-
 
     @PutMapping("/tickets/worker/me")
     @Transactional
@@ -298,5 +332,80 @@ public class TicketController {
         ticket.setUserAssigned(worker);
         this.ticketManager.createOrUpdate(ticket);
         return new ResponseEntity<>("USER ASINGED CORRECTLY", HttpStatus.OK);
+    }
+
+
+
+    /*
+     * DELETE MAPPING
+     * */
+
+    /*
+     * ID REFERS TO THE ID OF THE UPLOADED FILE
+     * */
+    @DeleteMapping("/ticket/file/{id}")
+    public ResponseEntity<String> deleteFile(@PathVariable("id") Long id) {
+        UploadedFile file = this.uploadedFileManager.findById(id);
+
+        File sysFile = new File(environment.getProperty("UPLOADS_DIRECTORY") + this.getUploadDir(file.getUploadDate()) + file.getName());
+
+        boolean result = sysFile.delete();
+
+        if (!result) return ResponseEntity.badRequest().body("NO POSIBLE DELETE FILE");
+        this.uploadedFileManager.delete(file);
+
+        return ResponseEntity.ok("file deleted correctly");
+    }
+
+    /*
+     * ID REFERS TO THE ID OF THE TICKET ID
+     * */
+    @DeleteMapping("/ticket/{id}/file/")
+    public ResponseEntity<String> deleteFiles(@PathVariable("id") Long id) {
+
+
+        Ticket ticket = new Ticket();
+        ticket.setIdTicket(id);
+
+        Set<UploadedFile> files = this.uploadedFileManager.findByTicket(ticket);
+
+        /*
+         * los borramos del sistema
+         * */
+        for (UploadedFile file : files) {
+            File sysFile = new File(environment.getProperty("UPLOADS_DIRECTORY") + this.getUploadDir(file.getUploadDate()) + file.getName());
+
+            boolean result = sysFile.delete();
+
+            if (!result) return ResponseEntity.badRequest().body("NO POSIBLE DELETE FILE");
+        }
+
+
+        for (UploadedFile file : files) {
+            this.uploadedFileManager.delete(file);
+        }
+
+
+        return ResponseEntity.ok("file deleted correctly");
+
+    }
+
+    @DeleteMapping("/tickets/status")
+    public ResponseEntity<String> removeStatus(@RequestBody String json) {
+        JsonObject obj = this.gson.fromJson(json, JsonObject.class);
+        Long id = obj.get("idHistory") != null ? obj.get("idHistory").getAsLong() : null;
+        if (id == null) return new ResponseEntity<>("NO ID RECIVED", HttpStatus.BAD_REQUEST);
+
+        TicketHistory statusChange = this.ticketHistoryManager.findById(id);
+        this.ticketHistoryManager.delete(statusChange);
+        return new ResponseEntity<>("This change has been erased from the history", HttpStatus.OK);
+    }
+
+
+    private String getUploadDir(LocalDateTime uploadDate) {
+        String year = uploadDate.getYear() + "";
+        String month = uploadDate.getMonthValue() + "";
+        String day = uploadDate.getDayOfMonth() + "";
+        return year + File.separator + month + File.separator + day + File.separator;
     }
 }

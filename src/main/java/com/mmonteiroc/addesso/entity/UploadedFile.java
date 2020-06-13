@@ -1,5 +1,7 @@
 package com.mmonteiroc.addesso.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
@@ -29,11 +31,20 @@ public class UploadedFile {
     @Column(name = "file_type")
     private String filetype;
 
+    @Column(name = "content_type")
+    private String contentType;
+
     @ManyToOne
     @JoinColumn(name = "ticket_idticket")
+    @JsonBackReference
     private Ticket ticket;
 
     public UploadedFile() {
+    }
+
+    @PrePersist
+    public void setUploaded() {
+        this.uploadDate = LocalDateTime.now();
     }
 
     public Long getIdFile() {
@@ -60,5 +71,27 @@ public class UploadedFile {
         this.uploadDate = uploadDate;
     }
 
+    public String getFiletype() {
+        return filetype;
+    }
 
+    public void setFiletype(String filetype) {
+        this.filetype = filetype;
+    }
+
+    public Ticket getTicket() {
+        return ticket;
+    }
+
+    public void setTicket(Ticket ticket) {
+        this.ticket = ticket;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
 }

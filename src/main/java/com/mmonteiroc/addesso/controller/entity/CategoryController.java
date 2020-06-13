@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
-import javax.websocket.server.PathParam;
 import java.io.IOException;
 import java.util.Set;
 
@@ -45,7 +44,7 @@ public class CategoryController {
     }
 
     @GetMapping("/category/{id}")
-    public Category getAllCategories(@PathParam("id") Long id, HttpServletResponse response) throws IOException {
+    public Category getAllCategories(@PathVariable("id") Long id, HttpServletResponse response) throws IOException {
         try {
             return this.categoryManager.findById(id);
         } catch (CategoryNotFoundException e) {
