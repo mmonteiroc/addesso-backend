@@ -78,4 +78,9 @@ public class TokenManager implements Serializable {
         return this.userRepository.findByEmail(email);
     }
 
+
+    public String getPhotoToken(User user) {
+        return this.generateGenericToken(user, 20000L);
+    }
+
 }

@@ -50,7 +50,7 @@ public class UserController {
         String token = request.getHeader("Authorization");
         token = token.replace("Bearer ", "");
         try {
-            return this.tokenManager.getUsuariFromToken(token);
+            return this.userManager.findById(this.tokenManager.getUsuariFromToken(token).getIduser());
         } catch (TokenInvalidException | TokenOverdatedException e) {
             e.printStackTrace();
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

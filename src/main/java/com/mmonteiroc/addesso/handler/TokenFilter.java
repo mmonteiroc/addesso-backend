@@ -46,7 +46,10 @@ public class TokenFilter implements HandlerInterceptor {
 
             try {
                 boolean validate = tokenManager.validateToken(token);
-                if (validate) return true;
+                if (validate) {
+                    request.setAttribute("userToken", token);
+                    return true;
+                }
             } catch (TokenOverdatedException | TokenInvalidException e) {
                 e.printStackTrace();
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());

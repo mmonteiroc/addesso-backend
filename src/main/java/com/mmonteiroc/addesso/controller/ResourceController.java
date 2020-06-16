@@ -2,6 +2,8 @@ package com.mmonteiroc.addesso.controller;
 
 import com.mmonteiroc.addesso.entity.UploadedFile;
 import com.mmonteiroc.addesso.exceptions.entity.UploadedFileNotFoundException;
+import com.mmonteiroc.addesso.exceptions.token.TokenInvalidException;
+import com.mmonteiroc.addesso.exceptions.token.TokenOverdatedException;
 import com.mmonteiroc.addesso.manager.administration.FileStorageManager;
 import com.mmonteiroc.addesso.manager.entity.UploadedFileManager;
 import com.mmonteiroc.addesso.manager.security.TokenManager;
@@ -11,10 +13,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
@@ -85,4 +84,36 @@ public class ResourceController {
     }
 
 
+    @GetMapping("/photos")
+    public ResponseEntity getPhoto(@RequestParam("id") Long id, @RequestParam("access") String token) throws IOException {
+        try {
+            this.tokenManager.validateToken(token);
+            UploadedFile file = this.uploadedFileManager.findById(id);
+            LocalDateTime uploadDate = file.getUploadDate();
+            String year = uploadDate.getYear() + "";
+            String month = uploadDate.getMonthValue() + "";
+            String day = uploadDate.getDayOfMonth() + "";
+            String finalDir = year + File.separator + month + File.separator + day + File.separator;
+
+            // Load file as Resource
+            Resource resource = fileStorageManager.loadFileAsResource(environment.getProperty("UPLOADS_DIRECTORY") + finalDir + file.getName());
+
+            // Try to determine file's content type
+            String contentType = file.getContentType();
+
+
+            // Fallback to the default content type if type could not be determined
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
+        } catch (UploadedFileNotFoundException | TokenOverdatedException | TokenInvalidException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

@@ -45,7 +45,7 @@ public class TicketManager {
     public Ticket findById(Long id) throws TicketNotFoundException {
         Ticket ticket = this.ticketRepository.findByIdTicket(id);
         if (ticket == null) throw new TicketNotFoundException("Ticket with id [" + id + "] not found");
-        return this.ticketRepository.findByIdTicket(id);
+        return ticket;
     }
 
     public Set<Ticket> findByCategory(Category category) {

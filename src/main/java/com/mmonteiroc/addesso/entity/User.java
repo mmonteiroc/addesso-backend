@@ -2,6 +2,8 @@ package com.mmonteiroc.addesso.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import org.springframework.stereotype.Component;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -17,6 +19,7 @@ import java.util.Set;
  * Package: com.mmonteiroc.addesso.entity
  * Project: addesso
  */
+@Component
 @Entity
 @Table(name = "user")
 public class User {
@@ -47,8 +50,15 @@ public class User {
     @Column(name = "is_technician", columnDefinition = "bit")
     private Boolean isTechnician;
 
-    @Column(name = "profile_photo")
-    private String profilePhoto;
+    /*
+     * This isn't saved, just gives the token of access to the frontend
+     * */
+    @Transient
+    private String accessPhoto;
+
+    @OneToOne
+    @JoinColumn(name = "uploadedfile_idfile")
+    private UploadedFile profilePhoto;
 
     @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
@@ -57,6 +67,10 @@ public class User {
     @OneToMany(mappedBy = "userOwner", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
     private Set<Ticket> ticketsCreated = new HashSet<>();
+
+    @OneToMany(mappedBy = "userAddress", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private Set<Address> addresses = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
@@ -147,11 +161,11 @@ public class User {
         this.ticketsCreated = ticketsCreated;
     }
 
-    public String getProfilePhoto() {
+    public UploadedFile getProfilePhoto() {
         return profilePhoto;
     }
 
-    public void setProfilePhoto(String profilePhoto) {
+    public void setProfilePhoto(UploadedFile profilePhoto) {
         this.profilePhoto = profilePhoto;
     }
 
@@ -169,6 +183,22 @@ public class User {
 
     public void setComments(Set<Comment> comments) {
         this.comments = comments;
+    }
+
+    public String getAccessPhoto() {
+        return accessPhoto;
+    }
+
+    public void setAccessPhoto(String accessPhoto) {
+        this.accessPhoto = accessPhoto;
+    }
+
+    public Set<Address> getAddresses() {
+        return addresses;
+    }
+
+    public void setAddresses(Set<Address> addresses) {
+        this.addresses = addresses;
     }
 
     @Override

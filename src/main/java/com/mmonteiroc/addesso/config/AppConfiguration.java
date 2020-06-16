@@ -37,6 +37,6 @@ public class AppConfiguration implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(getTokenFilter()).addPathPatterns("/**").excludePathPatterns("/auth/**");
+        registry.addInterceptor(getTokenFilter()).addPathPatterns("/**").excludePathPatterns("/auth/**", "/photos/**");
     }
 }

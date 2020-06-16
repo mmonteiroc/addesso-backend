@@ -5,8 +5,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.mmonteiroc.addesso.entity.User;
 import com.mmonteiroc.addesso.exceptions.petition.NotRecivedRequiredParamsException;
+import com.mmonteiroc.addesso.manager.administration.FileStorageManager;
+import com.mmonteiroc.addesso.manager.security.TokenManager;
 import com.mmonteiroc.addesso.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -28,18 +31,34 @@ public class UserManager {
     private UserRepository userRepository;
 
     @Autowired
+    private FileStorageManager fileStorageManager;
+
+    @Autowired
+    private TokenManager tokenManager;
+
+    @Autowired
     private Gson gson;
 
+    @Autowired
+    private Environment environment;
+
     public User findById(Long id) {
-        return this.userRepository.findByIduser(id);
+        User user = this.userRepository.findByIduser(id);
+        user.setAccessPhoto(this.tokenManager.getPhotoToken(user));
+        return user;
     }
 
     public User findByEmail(String email) {
-        return this.userRepository.findByEmail(email);
+        User user = this.userRepository.findByEmail(email);
+        user.setAccessPhoto(this.tokenManager.getPhotoToken(user));
+        return user;
     }
 
     public Set<User> findAll() {
-        return this.userRepository.findAll();
+
+        Set<User> users = this.userRepository.findAll();
+        for (User user : users) user.setAccessPhoto(this.tokenManager.getPhotoToken(user));
+        return users;
     }
 
     public void create(User... users) {
