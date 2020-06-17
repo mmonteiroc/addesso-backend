@@ -1,7 +1,9 @@
 package com.mmonteiroc.addesso.handler;
 
+import com.mmonteiroc.addesso.entity.Session;
 import com.mmonteiroc.addesso.exceptions.token.TokenInvalidException;
 import com.mmonteiroc.addesso.exceptions.token.TokenOverdatedException;
+import com.mmonteiroc.addesso.manager.entity.SessionManager;
 import com.mmonteiroc.addesso.manager.security.TokenManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
@@ -10,6 +12,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.time.LocalDateTime;
 
 
 /**
@@ -26,6 +29,9 @@ public class TokenFilter implements HandlerInterceptor {
 
     @Autowired
     TokenManager tokenManager;
+
+    @Autowired
+    private SessionManager sessionManager;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -47,6 +53,21 @@ public class TokenFilter implements HandlerInterceptor {
             try {
                 boolean validate = tokenManager.validateToken(token);
                 if (validate) {
+
+
+                    /*
+                     * We update the session everytime there is a new access with it
+                     * */
+                    Session session = this.tokenManager.getSessionFromToken(token);
+
+
+                    /*
+                     * Change exception TODO
+                     * */
+                    if (session == null) throw new Exception("Session closed");
+                    session.setLastConnection(LocalDateTime.now());
+                    this.sessionManager.createOrUpdate(session);
+
                     request.setAttribute("userToken", token);
                     return true;
                 }

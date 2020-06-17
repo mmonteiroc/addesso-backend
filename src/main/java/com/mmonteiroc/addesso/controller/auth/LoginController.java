@@ -3,19 +3,19 @@ package com.mmonteiroc.addesso.controller.auth;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.mmonteiroc.addesso.entity.Session;
 import com.mmonteiroc.addesso.entity.User;
 import com.mmonteiroc.addesso.exceptions.token.TokenInvalidException;
 import com.mmonteiroc.addesso.exceptions.token.TokenOverdatedException;
+import com.mmonteiroc.addesso.manager.entity.SessionManager;
 import com.mmonteiroc.addesso.manager.entity.UserManager;
 import com.mmonteiroc.addesso.manager.security.TokenManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
@@ -39,6 +39,9 @@ public class LoginController {
     private TokenManager tokenManager;
 
     @Autowired
+    private SessionManager sessionManager;
+
+    @Autowired
     private Gson gson;
 
     /**
@@ -47,7 +50,7 @@ public class LoginController {
      * @return we return de access_tokens + the roles
      */
     @PostMapping("/auth/login")
-    public Map<String, String> doLocalLogin(@RequestBody String json, HttpServletResponse response) throws IOException {
+    public Map<String, String> doLocalLogin(@RequestBody String json, HttpServletResponse response, HttpServletRequest request) throws IOException {
         User jsonUser = this.userManager.convertFromJson(json);
         if (jsonUser == null || jsonUser.getEmail() == null || jsonUser.getPasswd() == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -57,17 +60,38 @@ public class LoginController {
 
         User toValidate = this.userManager.findByEmail(jsonUser.getEmail());
 
-        if (toValidate!=null && this.userManager.validatePassword(jsonUser, toValidate)) {
+        if (toValidate != null && this.userManager.validatePassword(jsonUser, toValidate)) {
             response.setStatus(HttpServletResponse.SC_OK);
 
+            /*
+             * We create the entity
+             * session for the user
+             * */
+            Session logedSession = new Session();
+
+
+            /*
+             * Todo: get the USER AGENT and parse it
+             * */
+//            logedSession.setBrowser();
+
+            String ip = request.getHeader("X-FORWARDED-FOR");
+            System.out.println(ip);
+            logedSession.setLastConnectionIp(ip);
+            logedSession.setUserSession(toValidate);
+            this.sessionManager.createOrUpdate(logedSession);
+
+
             Map<String, String> toReturn = new HashMap<>();
-            toReturn.put("access_token", this.tokenManager.generateAcessToken(toValidate));
-            toReturn.put("refresh_token", this.tokenManager.generateRefreshToken(toValidate));
+            toReturn.put("access_token", this.tokenManager.generateAcessToken(toValidate, logedSession));
+            toReturn.put("refresh_token", this.tokenManager.generateRefreshToken(toValidate, logedSession));
 
             List<String> roles = new ArrayList<>();
             if (toValidate.isAdmin()) roles.add("\"admin\"");
             if (toValidate.isTechnician()) roles.add("\"technician\"");
             toReturn.put("roles", Arrays.toString(roles.toArray()));
+
+
             return toReturn;
         } else {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -98,8 +122,9 @@ public class LoginController {
              * This already validates the refresh token.
              * */
             User user = this.tokenManager.getUsuariFromToken(refreshToken);
-            String newAccess = this.tokenManager.generateAcessToken(user);
-            String newRefresh = this.tokenManager.generateRefreshToken(user);
+            Session session = this.tokenManager.getSessionFromToken(refreshToken);
+            String newAccess = this.tokenManager.generateAcessToken(user, session);
+            String newRefresh = this.tokenManager.generateRefreshToken(user, session);
 
             Map<String, String> map = new HashMap<>();
             map.put("access_token", newAccess);
@@ -145,6 +170,21 @@ public class LoginController {
             user.setTechnician(false);
             this.userManager.create(user);
             return new ResponseEntity<>("OK", HttpStatus.OK);
+        }
+    }
+
+
+    @DeleteMapping("/disconnect")
+    public ResponseEntity disconnectSession(HttpServletRequest request) {
+
+        try {
+            Session session = this.tokenManager.getSessionFromToken((String) request.getAttribute("userToken"));
+            this.sessionManager.delete(session);
+
+            return ResponseEntity.ok("discconnected");
+        } catch (TokenInvalidException | TokenOverdatedException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }

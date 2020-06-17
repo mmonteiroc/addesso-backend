@@ -76,6 +76,12 @@ public class User {
     @JsonBackReference
     private Set<Comment> comments = new HashSet<>();
 
+
+    @OneToMany(mappedBy = "userSession", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private Set<Session> sessions = new HashSet<>();
+
+
     public User() {
     }
 
@@ -95,6 +101,11 @@ public class User {
         ticket.getComments().remove(comment);
         this.comments.remove(comment);
     }
+
+    public void addSession(Session session) {
+        this.sessions.add(session);
+    }
+
 
     public Long getIduser() {
         return iduser;
@@ -201,6 +212,23 @@ public class User {
         this.addresses = addresses;
     }
 
+    public Boolean getAdmin() {
+        return isAdmin;
+    }
+
+    public Boolean getTechnician() {
+        return isTechnician;
+    }
+
+    public Set<Session> getSessions() {
+        return sessions;
+    }
+
+    public void setSessions(Set<Session> sessions) {
+        this.sessions = sessions;
+    }
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -213,12 +241,13 @@ public class User {
                 Objects.equals(email, user.email) &&
                 Objects.equals(isAdmin, user.isAdmin) &&
                 Objects.equals(isTechnician, user.isTechnician) &&
+                Objects.equals(accessPhoto, user.accessPhoto) &&
                 Objects.equals(profilePhoto, user.profilePhoto);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(iduser, name, surname, passwd, email, isAdmin, isTechnician, profilePhoto);
+        return Objects.hash(iduser, name, surname, passwd, email, isAdmin, isTechnician, accessPhoto, profilePhoto);
     }
 
     @Override
@@ -231,10 +260,13 @@ public class User {
                 ", email='" + email + '\'' +
                 ", isAdmin=" + isAdmin +
                 ", isTechnician=" + isTechnician +
-                ", profilePhoto='" + profilePhoto + '\'' +
+                ", accessPhoto='" + accessPhoto + '\'' +
+                ", profilePhoto=" + profilePhoto +
                 ", ticketsAsigned=" + ticketsAsigned +
                 ", ticketsCreated=" + ticketsCreated +
+                ", addresses=" + addresses +
                 ", comments=" + comments +
+                ", sessions=" + sessions +
                 '}';
     }
 }

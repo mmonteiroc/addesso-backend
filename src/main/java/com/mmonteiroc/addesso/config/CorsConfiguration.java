@@ -28,7 +28,7 @@ public class CorsConfiguration implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
 
         registry.addMapping("/**")
-                .allowCredentials(true)
+                .allowCredentials(true).allowedHeaders("X-FORWARDED-FOR", "Authorization", "content-type")
                 .allowedOrigins(environment.getProperty("CORS_ALLOWED"))
                 .allowedMethods("PUT", "POST", "GET", "DELETE", "OPTIONS", "HEAD");
 
