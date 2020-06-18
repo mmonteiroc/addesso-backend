@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.mmonteiroc.addesso.entity.Session;
 import com.mmonteiroc.addesso.entity.User;
+import com.mmonteiroc.addesso.exceptions.petition.SessionClosedException;
 import com.mmonteiroc.addesso.exceptions.token.TokenInvalidException;
 import com.mmonteiroc.addesso.exceptions.token.TokenOverdatedException;
 import com.mmonteiroc.addesso.manager.entity.SessionManager;
@@ -54,7 +55,6 @@ public class LoginController {
         User jsonUser = this.userManager.convertFromJson(json);
         if (jsonUser == null || jsonUser.getEmail() == null || jsonUser.getPasswd() == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "USER OR PASSWORD NOT VALID");
             return null;
         }
 
@@ -95,7 +95,6 @@ public class LoginController {
             return toReturn;
         } else {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "LOGIN DATA NOT VALID");
             return null;
         }
     }
@@ -112,7 +111,6 @@ public class LoginController {
         String refreshToken = jsonObject.get("refresh_token") != null ? jsonObject.get("refresh_token").getAsString() : null;
         if (refreshToken == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "REFRESH TOKEN NOT RECIVED");
             return null;
         }
 
@@ -132,10 +130,9 @@ public class LoginController {
 
             response.setStatus(HttpServletResponse.SC_OK);
             return map;
-        } catch (TokenOverdatedException | TokenInvalidException e) {
+        } catch (TokenOverdatedException | TokenInvalidException | SessionClosedException e) {
             e.printStackTrace();
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return null;
         }
     }
@@ -182,7 +179,7 @@ public class LoginController {
             this.sessionManager.delete(session);
 
             return ResponseEntity.ok("discconnected");
-        } catch (TokenInvalidException | TokenOverdatedException e) {
+        } catch (TokenInvalidException | TokenOverdatedException | SessionClosedException e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(e.getMessage());
         }

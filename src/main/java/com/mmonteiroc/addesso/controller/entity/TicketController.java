@@ -90,7 +90,6 @@ public class TicketController {
         } catch (TicketNotFoundException e) {
             e.printStackTrace();
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
             return null;
         }
     }

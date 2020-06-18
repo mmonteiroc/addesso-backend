@@ -2,6 +2,7 @@ package com.mmonteiroc.addesso.manager.security;
 
 import com.mmonteiroc.addesso.entity.Session;
 import com.mmonteiroc.addesso.entity.User;
+import com.mmonteiroc.addesso.exceptions.petition.SessionClosedException;
 import com.mmonteiroc.addesso.exceptions.token.TokenInvalidException;
 import com.mmonteiroc.addesso.exceptions.token.TokenOverdatedException;
 import com.mmonteiroc.addesso.repository.SessionRepository;
@@ -95,11 +96,13 @@ public class TokenManager implements Serializable {
         return this.userRepository.findByEmail(email);
     }
 
-    public Session getSessionFromToken(String token) throws TokenInvalidException, TokenOverdatedException {
+    public Session getSessionFromToken(String token) throws TokenInvalidException, TokenOverdatedException, SessionClosedException {
         Claims claims = this.getBody(token);
         Integer id = (Integer) claims.get("idsession");
         Long myId = new Long(id);
-        return this.sessionRepository.findByIdSession(myId);
+        Session session = this.sessionRepository.findByIdSession(myId);
+        if (session == null) throw new SessionClosedException("Session with id [" + myId + "] was not found");
+        return session;
     }
 
     public String getPhotoToken(User user) {

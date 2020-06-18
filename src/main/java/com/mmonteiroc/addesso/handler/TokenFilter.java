@@ -1,6 +1,7 @@
 package com.mmonteiroc.addesso.handler;
 
 import com.mmonteiroc.addesso.entity.Session;
+import com.mmonteiroc.addesso.exceptions.petition.SessionClosedException;
 import com.mmonteiroc.addesso.exceptions.token.TokenInvalidException;
 import com.mmonteiroc.addesso.exceptions.token.TokenOverdatedException;
 import com.mmonteiroc.addesso.manager.entity.SessionManager;
@@ -12,6 +13,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.time.LocalDateTime;
 
 
@@ -34,7 +36,7 @@ public class TokenFilter implements HandlerInterceptor {
     private SessionManager sessionManager;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
 
         /*
          * Detecta si la petición es un OPTIONS en tal caso devuelve true.
@@ -64,21 +66,18 @@ public class TokenFilter implements HandlerInterceptor {
                     /*
                      * Change exception TODO
                      * */
-                    if (session == null) throw new Exception("Session closed");
                     session.setLastConnection(LocalDateTime.now());
                     this.sessionManager.createOrUpdate(session);
 
                     request.setAttribute("userToken", token);
                     return true;
                 }
-            } catch (TokenOverdatedException | TokenInvalidException e) {
+            } catch (TokenOverdatedException | TokenInvalidException | SessionClosedException e) {
                 e.printStackTrace();
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return false;
             }
         } else {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token not recived");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return false;
         }
