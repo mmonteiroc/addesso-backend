@@ -14,7 +14,10 @@ import com.mmonteiroc.addesso.manager.security.TokenManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -68,16 +71,6 @@ public class LoginController {
              * session for the user
              * */
             Session logedSession = new Session();
-
-
-            /*
-             * Todo: get the USER AGENT and parse it
-             * */
-//            logedSession.setBrowser();
-
-            String ip = request.getHeader("X-FORWARDED-FOR");
-            System.out.println(ip);
-            logedSession.setLastConnectionIp(ip);
             logedSession.setUserSession(toValidate);
             this.sessionManager.createOrUpdate(logedSession);
 
@@ -130,8 +123,21 @@ public class LoginController {
 
             response.setStatus(HttpServletResponse.SC_OK);
             return map;
-        } catch (TokenOverdatedException | TokenInvalidException | SessionClosedException e) {
+        } catch (TokenInvalidException | SessionClosedException e) {
             e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return null;
+        } catch (TokenOverdatedException e) {
+            /*
+             * If it's overdated, we gonna want
+             * to close the session that had
+             * */
+            Integer id = (Integer) e.getClaims().get("idsession");
+            Long myId = new Long(id);
+            Session session = new Session();
+            session.setIdSession(myId);
+            this.sessionManager.delete(session);
+
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return null;
         }
@@ -171,17 +177,5 @@ public class LoginController {
     }
 
 
-    @DeleteMapping("/disconnect")
-    public ResponseEntity disconnectSession(HttpServletRequest request) {
 
-        try {
-            Session session = this.tokenManager.getSessionFromToken((String) request.getAttribute("userToken"));
-            this.sessionManager.delete(session);
-
-            return ResponseEntity.ok("discconnected");
-        } catch (TokenInvalidException | TokenOverdatedException | SessionClosedException e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
 }

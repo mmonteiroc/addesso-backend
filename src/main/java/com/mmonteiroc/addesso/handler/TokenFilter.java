@@ -62,7 +62,9 @@ public class TokenFilter implements HandlerInterceptor {
                      * */
                     Session session = this.tokenManager.getSessionFromToken(token);
 
-
+                    String ip = request.getHeader("X-FORWARDED-FOR");
+                    System.out.println(ip);
+                    session.setLastConnectionIp(ip);
                     /*
                      * Change exception TODO
                      * */

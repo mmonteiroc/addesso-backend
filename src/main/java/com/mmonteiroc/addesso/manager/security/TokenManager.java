@@ -75,7 +75,7 @@ public class TokenManager implements Serializable {
                     .getBody();
             return true;
         } catch (ExpiredJwtException e) {
-            throw new TokenOverdatedException("This token is overdated");
+            throw new TokenOverdatedException("This token is overdated", e.getClaims());
         } catch (Exception e) {
             throw new TokenInvalidException("This token isn't valid");
         }

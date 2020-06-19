@@ -1,5 +1,7 @@
 package com.mmonteiroc.addesso.exceptions.token;
 
+import io.jsonwebtoken.Claims;
+
 /**
  * Code created by: mmonteiroc
  * Email: miguelmonteiroclaveri@gmail.com
@@ -10,8 +12,23 @@ package com.mmonteiroc.addesso.exceptions.token;
  * Project: addesso
  */
 public class TokenOverdatedException extends Exception {
+    private Claims claims;
+
     public TokenOverdatedException(String message) {
         super(message);
+    }
+
+    public TokenOverdatedException(String message, Claims claims) {
+        super(message);
+        this.claims = claims;
+    }
+
+    public Claims getClaims() {
+        return claims;
+    }
+
+    public void setClaims(Claims claims) {
+        this.claims = claims;
     }
 }
 
