@@ -24,9 +24,9 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
-import javax.websocket.server.PathParam;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -68,6 +68,9 @@ public class TicketController {
     @Autowired
     private FileStorageManager fileStorageManager;
 
+    @Autowired
+    private StatusManager statusManager;
+
     /*
      * --------------
      *
@@ -82,7 +85,7 @@ public class TicketController {
     }
 
     @GetMapping("/tickets/{id}/history")
-    public Set<TicketHistory> getTicketHistory(@PathParam("id") Long id, HttpServletResponse response) throws IOException {
+    public List<TicketHistory> getTicketHistory(@PathVariable("id") Long id, HttpServletResponse response) throws IOException {
 
         try {
             Ticket ticket = this.ticketManager.findById(id);
@@ -94,15 +97,7 @@ public class TicketController {
         }
     }
 
-    @GetMapping("/tickets/not/solved")
-    public Set<Ticket> getTicketsNotSolved() {
-        return null;//this.ticketManager.findAllNotSolved();
-    }
 
-    @GetMapping("/tickets/solved")
-    public Set<Ticket> getTicketsSolved() {
-        return null;//this.ticketManager.findAllSolved();
-    }
 
     @GetMapping("/tickets/{id}")
     public Ticket getSpecificTicket(@PathVariable(name = "id") Long idTicket, HttpServletResponse response) throws IOException {

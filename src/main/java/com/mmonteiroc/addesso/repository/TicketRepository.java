@@ -21,5 +21,4 @@ public interface TicketRepository extends CrudRepository<Ticket, Long> {
     Set<Ticket> findAll();
 
     Set<Ticket> findAllByCategory(Category cat);
-
 }

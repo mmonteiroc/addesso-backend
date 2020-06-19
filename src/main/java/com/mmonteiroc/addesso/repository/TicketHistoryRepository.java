@@ -1,9 +1,11 @@
 package com.mmonteiroc.addesso.repository;
 
+import com.mmonteiroc.addesso.entity.Status;
 import com.mmonteiroc.addesso.entity.Ticket;
 import com.mmonteiroc.addesso.entity.TicketHistory;
 import org.springframework.data.repository.CrudRepository;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -20,5 +22,9 @@ public interface TicketHistoryRepository extends CrudRepository<TicketHistory, L
 
     Set<TicketHistory> findAllByTicket(Ticket ticket);
 
-    Set<TicketHistory> findAllByTicketOrderByStatusUpdatedDateDesc(Ticket ticket);
+    List<TicketHistory> findAllByTicketOrderByStatusUpdatedDateDesc(Ticket ticket);
+
+    List<TicketHistory> findAllByStatusOrderByStatusUpdatedDateDesc(Status status);
+
+    Set<TicketHistory> findAllByStatus(Status status);
 }

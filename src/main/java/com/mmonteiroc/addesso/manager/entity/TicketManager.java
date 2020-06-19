@@ -5,17 +5,20 @@ import com.google.gson.JsonObject;
 import com.mmonteiroc.addesso.entity.Category;
 import com.mmonteiroc.addesso.entity.Status;
 import com.mmonteiroc.addesso.entity.Ticket;
+import com.mmonteiroc.addesso.entity.TicketHistory;
 import com.mmonteiroc.addesso.exceptions.entity.CategoryNotFoundException;
 import com.mmonteiroc.addesso.exceptions.entity.StatusNotFoundException;
 import com.mmonteiroc.addesso.exceptions.entity.TicketNotFoundException;
 import com.mmonteiroc.addesso.exceptions.petition.NotRecivedRequiredParamsException;
 import com.mmonteiroc.addesso.repository.CategoryRepository;
 import com.mmonteiroc.addesso.repository.StatusRepository;
+import com.mmonteiroc.addesso.repository.TicketHistoryRepository;
 import com.mmonteiroc.addesso.repository.TicketRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -38,6 +41,9 @@ public class TicketManager {
 
     @Autowired
     private StatusRepository statusRepository;
+
+    @Autowired
+    private TicketHistoryRepository ticketHistoryRepository;
 
     @Autowired
     private Gson gson;
@@ -126,7 +132,10 @@ public class TicketManager {
     }
 
     public Set<Ticket> findByStatus(Status toBe) {
-        return null;
+        Set<TicketHistory> allHistories = this.ticketHistoryRepository.findAllByStatus(toBe);
+        Set<Ticket> tickets = new HashSet<>();
+        for (TicketHistory history : allHistories) tickets.add(history.getTicket());
+        return tickets;
     }
 
     public Set<Ticket> findByNotStatus(Status notToBe) {
